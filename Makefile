@@ -2,7 +2,7 @@
 
 #--------------------------------------------------------------------------
 # The Makefile offers a developer-friendly approach to automate
-# the set up of the Vite TypeScript package toolkit.
+# the set up of the TypeScript HTTP Client.
 #
 # You can run the following make command:
 #
@@ -27,7 +27,7 @@ endif
 # https://vitejs.dev/guide/#scaffolding-your-first-vite-project
 #--------------------------------------------------------------------------
 local-setup:
-	exec docker run -it --rm --name vite-toolkit \
+	exec docker run -it --rm --name http-client \
 		-v $(PWD)${CODE_DIR}:/app \
 		-w="/app" \
 		node:alpine /bin/sh -c "yarn install"

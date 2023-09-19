@@ -8,7 +8,7 @@
 version: '3.9'
 
 # Sets the project name.
-name: vite-toolkit
+name: http-client
 
 # The Docker services.
 services:
@@ -16,7 +16,7 @@ services:
   vite:
     # https://hub.docker.com/_/node
     image: node:alpine
-    container_name: ${APP_CONTAINER_NAME:-vite-toolkit_app}
+    container_name: ${APP_CONTAINER_NAME:-http-client_app}
     networks:
       - local
     # Map the app container exposed port to the host port.
@@ -39,4 +39,4 @@ services:
 networks:
   local:
     driver: 'bridge'
-    name: '${NETWORK_NAME:-vite-toolkit_local}'
+    name: '${NETWORK_NAME:-http-client_local}'
