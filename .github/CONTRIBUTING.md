@@ -1,6 +1,6 @@
-# Vite Typescript Package Toolkit Contributing Guide
+# TypeScript HTTP Client Contributing Guide
 
-Thanks for your interest in contributing to **_Vite Typescript Package Toolkit_**!
+Thanks for your interest in contributing to **_TypeScript HTTP Client_**!
 Before submitting your contribution, please make sure to take a moment and read
 through the following guidelines:
 
@@ -11,25 +11,25 @@ through the following guidelines:
 
 ## <a name="coc"></a> Code of Conduct
 
-Help us keep development for **_Vite Typescript Package Toolkit_** open and inclusive.
+Help us keep development for **_TypeScript HTTP Client_** open and inclusive.
 Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## <a name="question"></a> Got a Question or Problem?
 
 Do not open issues for general support questions as we want to keep GitHub
 issues for bug reports and feature requests. Instead, we recommend using the
-[GitHub Discussions](https://github.com/wolfpackthatcodes/vite-typescript-package-toolkit/discussions)
+[GitHub Discussions](https://github.com/wolfpackthatcodes/typescript-http-client/discussions)
 space.
 
 ## <a name="issue"></a> Submitting an Issue
 
 Before you submit an issue, please search the issue tracker or
-[GitHub Discussions](https://github.com/wolfpackthatcodes/vite-typescript-package-toolkit/discussions)
+[GitHub Discussions](https://github.com/wolfpackthatcodes/typescript-http-client/discussions)
 space, maybe an issue for your problem already exists and the discussion might
 inform you of workarounds readily available.
 
 You can file new issues by selecting from our
-[new issue templates](https://github.com/wolfpackthatcodes/vite-typescript-package-toolkit/issues/new/choose)
+[new issue templates](https://github.com/wolfpackthatcodes/typescript-http-client/issues/new/choose)
 and filling out the issue template.
 
 ## <a name="pr"></a> Submitting a Pull Request (PR)
@@ -39,5 +39,5 @@ and filling out the issue template.
 It's never a fun experience to have your pull request declined after investing
 a lot of time and effort into a new feature. To avoid this from happening, we
 request that contributors create an
-[issue](https://github.com/wolfpackthatcodes/vite-typescript-package-toolkit/issues/new/choose)
+[issue](https://github.com/wolfpackthatcodes/typescript-http-client/issues/new/choose)
 to first discuss any significant new features.

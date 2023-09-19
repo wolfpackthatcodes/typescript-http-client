@@ -1,9 +1,9 @@
 # Code of Conduct
 
-The **_Vite Typescript Package Toolkit_** code of conduct is based on [The Ruby Community Conduct Guidelines](https://www.ruby-lang.org/en/conduct/).
+The **_TypeScript HTTP Client_** code of conduct is based on [The Ruby Community Conduct Guidelines](https://www.ruby-lang.org/en/conduct/).
 
 This document provides community guidelines for a respectful, productive, and collaborative place for any person who
-is willing to contribute to the **_Vite Typescript Package Toolkit_** project. It applies to all “collaborative space”, which is
+is willing to contribute to the **_TypeScript HTTP Client_** project. It applies to all “collaborative space”, which is
 defined as community communications channels (such as mailing lists, submitted patches, commit comments, etc.).
 
 - Participants will be tolerant of opposing views.
