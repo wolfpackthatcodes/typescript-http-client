@@ -1,1 +1,1 @@
-export { default as sum } from '@/sum';
+export { default as HttpClient } from '@/http/httpClient';
