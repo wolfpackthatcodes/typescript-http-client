@@ -67,4 +67,111 @@ describe('HTTP Client', () => {
       expect(fetch).toHaveBeenCalledWith('https://api.local/test/?q=123', { method: 'GET' });
     });
   });
+
+  describe('Send requests with Authentication', () => {
+    it('Send a request with a Basic Authentication', () => {
+      const user = {
+        name: 'luis.aveiro',
+        password: (Math.random() + 10).toString(36).substring(2),
+      };
+
+      new HttpClient().withBasicAuth(user.name, user.password).get('https://api.local/test/');
+
+      expect(fetch).toHaveBeenCalledWith('https://api.local/test/', {
+        method: 'GET',
+        headers: new Headers({
+          Authorization: 'Basic ' + btoa(`${user.name}:${user.password}`),
+        }),
+      });
+    });
+
+    it('Send a request with a Bearer token', () => {
+      const token = (Math.random() + 10).toString(36).substring(2);
+
+      new HttpClient().withToken(token).get('https://api.local/test/');
+
+      expect(fetch).toHaveBeenCalledWith('https://api.local/test/', {
+        method: 'GET',
+        headers: new Headers({ Authorization: `Bearer ${token}` }),
+      });
+    });
+
+    it('Send a request with Credentials', () => {
+      new HttpClient().withCredentials().get('https://api.local/test/');
+
+      expect(fetch).toHaveBeenCalledWith('https://api.local/test/', { method: 'GET', credentials: 'same-origin' });
+    });
+  });
+
+  describe('Send requests with Headers', () => {
+    it('Send a request with a header', () => {
+      new HttpClient().withHeader('Accept-Encoding', 'gzip, deflate, br').head('https://api.local/test/');
+
+      expect(fetch).toHaveBeenCalledWith('https://api.local/test/', {
+        method: 'HEAD',
+        headers: new Headers({ 'Accept-Encoding': 'gzip, deflate, br' }),
+      });
+    });
+
+    it('Send a request with headers', () => {
+      const headers = { 'Accept-Encoding': 'gzip, deflate, br', connection: 'keep-alive' };
+
+      new HttpClient().withHeaders(headers).head('https://api.local/test/');
+
+      expect(fetch).toHaveBeenCalledWith('https://api.local/test/', { method: 'HEAD', headers: new Headers(headers) });
+    });
+
+    it('Send a request with updated headers', () => {
+      new HttpClient('https://api.local/')
+        .withHeaders({ 'Accept-Encoding': 'gzip, deflate', 'Content-Type': 'application/html' })
+        .replaceHeaders({ 'Accept-Encoding': 'gzip, deflate, br', 'Content-Type': 'application/json' })
+        .head('/test/');
+
+      expect(fetch).toHaveBeenCalledWith('https://api.local/test/', {
+        method: 'HEAD',
+        headers: new Headers({
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Content-Type': 'application/json',
+        }),
+      });
+    });
+
+    it('Send a request with updated header', () => {
+      new HttpClient('https://api.local/')
+        .withHeaders({ 'Content-Type': 'application/html' })
+        .replaceHeader('Content-Type', 'application/json')
+        .head('/test/');
+
+      expect(fetch).toHaveBeenCalledWith('https://api.local/test/', {
+        method: 'HEAD',
+        headers: new Headers({
+          'Content-Type': 'application/json',
+        }),
+      });
+    });
+
+    it('Send a request that accepts JSON', async () => {
+      const mockedResponseBody = [{ first_name: 'Luis', last_name: 'Aveiro' }];
+      const mockedResponse = new Response(JSON.stringify(mockedResponseBody), {
+        status: HttpStatusCodes.HTTP_OK,
+        headers: new Headers({
+          'Content-Type': 'application/json',
+        }),
+      });
+
+      // @ts-ignore
+      global.fetch.mockResolvedValue(mockedResponse);
+
+      const response = await new HttpClient().acceptJson().get('https://api.local/users');
+
+      expect(fetch).toHaveBeenCalledWith('https://api.local/users/', {
+        method: 'GET',
+        headers: new Headers({ Accept: 'application/json' }),
+      });
+
+      expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect(response.headers.get('Content-Type')).toStrictEqual('application/json');
+      expect(await response.json()).toStrictEqual(mockedResponseBody);
+    });
+  });
 });
