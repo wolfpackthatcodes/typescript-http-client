@@ -1,4 +1,5 @@
 import PendingRequestAuthorization from './pendingRequestAuthorization';
+import PendingRequestBody from './pendingRequestBody';
 import PendingRequestCredentials from './pendingRequestCredentials';
 import PendingRequestHeaders from './pendingRequestHeaders';
 import PendingRequestUrl from './pendingRequestUrl';
@@ -13,6 +14,13 @@ export default class HttpClient {
    * @var {PendingRequestAuthorization}
    */
   private requestAuthorization: PendingRequestAuthorization;
+
+  /**
+   * The request body instance.
+   *
+   * @var {PendingRequestBody}
+   */
+  private requestBody: PendingRequestBody;
 
   /**
    * The request credentials instance.
@@ -42,6 +50,7 @@ export default class HttpClient {
    */
   constructor(baseUrl?: string) {
     this.requestAuthorization = new PendingRequestAuthorization();
+    this.requestBody = new PendingRequestBody();
     this.requestCredentials = new PendingRequestCredentials();
     this.requestHeaders = new PendingRequestHeaders();
     this.requestUrl = new PendingRequestUrl(baseUrl);
@@ -68,6 +77,42 @@ export default class HttpClient {
   }
 
   /**
+   * Indicate the request contains JSON.
+   *
+   * @return {this}
+   */
+  public asJson(): this {
+    this.requestBody.asJson();
+    this.contentType('application/json');
+
+    return this;
+  }
+
+  /**
+   * Indicate the request contains form data.
+   *
+   * @return {this}
+   */
+  public asForm(): this {
+    this.requestBody.asForm();
+    this.contentType('multipart/form-data');
+
+    return this;
+  }
+
+  /**
+   * Indicate the request contains form parameters.
+   *
+   * @return {this}
+   */
+  public asUrlEncoded(): this {
+    this.requestBody.asUrlEncoded();
+    this.contentType('application/x-www-form-urlencoded');
+
+    return this;
+  }
+
+  /**
    * Construct the Fetch API Options for the request.
    *
    * @param {HttpMethods} method
@@ -88,11 +133,43 @@ export default class HttpClient {
       );
     }
 
+    if (this.requestBody.hasBody()) {
+      options.body = this.requestBody.parseRequestBody();
+
+      if (!this.requestHeaders.headers.has('Content-Type')) {
+        this.requestHeaders.withHeader('Content-Type', 'text/plain');
+      }
+    }
+
     if (this.requestHeaders.hasHeaders()) {
       options.headers = this.requestHeaders.headers;
     }
 
     return options;
+  }
+
+  /**
+   * Specify the request's content type.
+   *
+   * @param {string} contentType
+   *
+   * @return {this}
+   */
+  public contentType(contentType: string): this {
+    this.requestHeaders.withHeader('Content-Type', contentType);
+
+    return this;
+  }
+
+  /**
+   * Process a DELETE request to the given URL.
+   *
+   * @param {string} url
+   *
+   * @returns {Promise<Response>}
+   */
+  public delete(url: string): Promise<Response> {
+    return this.sendRequest('DELETE', url);
   }
 
   /**
@@ -121,6 +198,48 @@ export default class HttpClient {
     if (query) this.withQueryParameters(query);
 
     return this.sendRequest('HEAD', url);
+  }
+
+  /**
+   * Process a PATCH request to the given URL.
+   *
+   * @param {string} url
+   * @param {object|string} data
+   *
+   * @returns {Promise<Response>}
+   */
+  public patch(url: string, data: object | string): Promise<Response> {
+    this.withBody(data);
+
+    return this.sendRequest('PATCH', url);
+  }
+
+  /**
+   * Process a POST request to the given URL.
+   *
+   * @param {object|string} url
+   * @param {object} data
+   *
+   * @returns {Promise<Response>}
+   */
+  public post(url: string, data: object | string): Promise<Response> {
+    this.withBody(data);
+
+    return this.sendRequest('POST', url);
+  }
+
+  /**
+   * Process a PUT request to the given URL.
+   *
+   * @param {object|string} url
+   * @param {object} data
+   *
+   * @returns {Promise<Response>}
+   */
+  public put(url: string, data: object | string): Promise<Response> {
+    this.withBody(data);
+
+    return this.sendRequest('PUT', url);
   }
 
   /**
@@ -176,6 +295,17 @@ export default class HttpClient {
    */
   public withBasicAuth(username: string, password: string): this {
     return this.withToken(btoa(`${username}:${password}`), 'Basic');
+  }
+
+  /**
+   * Attach body data to the request.
+   *
+   * @param {object|string} body
+   *
+   * @returns {void}
+   */
+  private withBody(body: object | string): void {
+    this.requestBody.setBody(body);
   }
 
   /**

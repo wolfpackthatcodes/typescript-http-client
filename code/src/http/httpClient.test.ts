@@ -68,6 +68,108 @@ describe('HTTP Client', () => {
     });
   });
 
+  describe('POST request', () => {
+    it('Send a request with raw data', () => {
+      const bodyText = 'This is a text body request.';
+
+      new HttpClient().post('https://api.local/test/', bodyText);
+
+      expect(fetch).toHaveBeenCalledWith('https://api.local/test/', {
+        method: 'POST',
+        body: bodyText,
+        headers: new Headers({
+          'Content-Type': 'text/plain',
+        }),
+      });
+    });
+
+    it('Send a request with JSON data', () => {
+      const user = { first_name: 'Luis', last_name: 'Aveiro' };
+
+      new HttpClient().asJson().post('https://api.local/test/', user);
+
+      expect(fetch).toHaveBeenCalledWith('https://api.local/test/', {
+        method: 'POST',
+        body: JSON.stringify(user),
+        headers: new Headers({
+          'Content-Type': 'application/json',
+        }),
+      });
+    });
+
+    it('Send a request with Multipart Form-data', () => {
+      const user = { first_name: 'Luis', last_name: 'Aveiro' };
+      const formData = new FormData();
+
+      for (const [key, value] of Object.entries(user)) {
+        formData.append(key, value);
+      }
+
+      new HttpClient().asForm().post('https://api.local/test/', user);
+
+      expect(fetch).toHaveBeenCalledWith('https://api.local/test/', {
+        method: 'POST',
+        body: formData,
+        headers: new Headers({
+          'Content-Type': 'multipart/form-data',
+        }),
+      });
+    });
+
+    it('Send a request with URL encoded data', () => {
+      const user = { first_name: 'Luis', last_name: 'Aveiro' };
+      const urlencoded = new URLSearchParams(user);
+
+      new HttpClient().asUrlEncoded().post('https://api.local/test/', user);
+
+      expect(fetch).toHaveBeenCalledWith('https://api.local/test/', {
+        method: 'POST',
+        body: urlencoded,
+        headers: new Headers({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+      });
+    });
+  });
+
+  describe('PATCH request', () => {
+    it('Send a request with JSON data', () => {
+      const user = { first_name: 'Luis', last_name: 'Aveiro' };
+
+      new HttpClient().asJson().patch('https://api.local/users/1', user);
+
+      expect(fetch).toHaveBeenCalledWith('https://api.local/users/1/', {
+        method: 'PATCH',
+        body: JSON.stringify(user),
+        headers: new Headers({
+          'Content-Type': 'application/json',
+        }),
+      });
+    });
+  });
+
+  describe('PUT request', () => {
+    it('Send a request with JSON data', () => {
+      const user = { first_name: 'Luis', last_name: 'Aveiro' };
+
+      new HttpClient().asJson().put('https://api.local/users/1', user);
+
+      expect(fetch).toHaveBeenCalledWith('https://api.local/users/1/', {
+        method: 'PUT',
+        body: JSON.stringify(user),
+        headers: new Headers({
+          'Content-Type': 'application/json',
+        }),
+      });
+    });
+  });
+
+  describe('DELETE request', () => {
+    it('Send a DELETE request', () => {
+      new HttpClient().delete('https://api.local/users/1');
+
+      expect(fetch).toHaveBeenCalledWith('https://api.local/users/1/', { method: 'DELETE' });
+    });
+  });
+
   describe('Send requests with Authentication', () => {
     it('Send a request with a Basic Authentication', () => {
       const user = {
@@ -172,6 +274,20 @@ describe('HTTP Client', () => {
       expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
       expect(response.headers.get('Content-Type')).toStrictEqual('application/json');
       expect(await response.json()).toStrictEqual(mockedResponseBody);
+    });
+  });
+
+  describe('Catch Exceptions', () => {
+    it('Catch a request with invalid URL encoded data', () => {
+      const httpClient = new HttpClient().asUrlEncoded().post('https://api.local/test/', 'Example text');
+
+      expect(httpClient).rejects.toThrowError('Cannot parse a string as URLSearchParams.');
+    });
+
+    it('Catch a request with invalid Multipart Form-data', () => {
+      const httpClient = new HttpClient().asForm().post('https://api.local/test/', 'Example text');
+
+      expect(httpClient).rejects.toThrowError('Cannot parse a string as FormData.');
     });
   });
 });
