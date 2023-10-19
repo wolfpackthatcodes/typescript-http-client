@@ -291,4 +291,65 @@ describe('HTTP Client', () => {
       expect(httpClient).rejects.toThrowError('Cannot parse a string as FormData.');
     });
   });
+
+  describe('Provide mocked response', () => {
+    it('Mocked response is returned after faking', async () => {
+      const user = { first_name: 'Luis', last_name: 'Aveiro' };
+
+      const mockedResponseBody = [
+        { id: Math.round(Math.random() * 100), ...user, date_created: new Date().toString() },
+      ];
+
+      const mockedResponse = new Response(JSON.stringify(mockedResponseBody), {
+        status: HttpStatusCodes.HTTP_CREATED,
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+      });
+
+      const response = await new HttpClient()
+        .fake({ 'users/*': mockedResponse })
+        .asJson()
+        .acceptJson()
+        .post('https://api.local/users/', user);
+
+      expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_CREATED);
+      expect(response.headers.has('Content-Type')).toBeTruthy();
+      expect(response.headers.get('Content-Type')).toEqual('application/json');
+      expect(await response.json()).toStrictEqual(mockedResponseBody);
+
+      console.log(mockedResponseBody);
+    });
+
+    it('Mocked responses is returned after faking', async () => {
+      const client = new HttpClient()
+        .fake({
+          'https://api.local/*': new Response(null, {
+            status: HttpStatusCodes.HTTP_ACCEPTED,
+          }),
+          'https://test.local/*': new Response(null, {
+            status: HttpStatusCodes.HTTP_OK,
+          }),
+        })
+        .asJson()
+        .acceptJson();
+
+      const firstResponse = await client.delete('https://api.local/users/1/');
+      expect(firstResponse.status).toStrictEqual(HttpStatusCodes.HTTP_ACCEPTED);
+
+      const secondResponse = await client.get('https://test.local/users/');
+      expect(secondResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+    });
+
+    it('Wildcard mocked response is returned after faking', async () => {
+      const client = new HttpClient()
+        .fake({ '*': new Response(null, { status: HttpStatusCodes.HTTP_OK }) })
+        .asJson()
+        .acceptJson();
+
+      const firstResponse = await client.delete('https://api.local/users/1/');
+      expect(firstResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+
+      const secondResponse = await client.get('https://test.local/users/');
+      expect(secondResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+    });
+  });
 });

@@ -1,3 +1,4 @@
+import MockedResponses from './responses/mockedResponses';
 import PendingRequestAuthorization from './pendingRequestAuthorization';
 import PendingRequestBody from './pendingRequestBody';
 import PendingRequestCredentials from './pendingRequestCredentials';
@@ -8,6 +9,13 @@ import { HttpMethods } from './types/httpMethods';
 import { RequestAuthorization } from './types/requestAuthorization';
 
 export default class HttpClient {
+  /**
+   * The mocked responses instance.
+   *
+   * @var {MockedResponse}
+   */
+  private mockedResponses: MockedResponses;
+
   /**
    * The request authorization instance.
    *
@@ -49,6 +57,7 @@ export default class HttpClient {
    * @param {string|undefined} baseUrl
    */
   constructor(baseUrl?: string) {
+    this.mockedResponses = new MockedResponses();
     this.requestAuthorization = new PendingRequestAuthorization();
     this.requestBody = new PendingRequestBody();
     this.requestCredentials = new PendingRequestCredentials();
@@ -173,6 +182,19 @@ export default class HttpClient {
   }
 
   /**
+   * Register a mocked response that will intercept requests and be able to return mocked responses.
+   *
+   * @param {object} mockedResponses
+   *
+   * @returns {this}
+   */
+  public fake(mockedResponses: object): this {
+    this.mockedResponses.set(mockedResponses);
+
+    return this;
+  }
+
+  /**
    * Process a GET request to the given URL.
    *
    * @param {string} url
@@ -282,7 +304,9 @@ export default class HttpClient {
   private async sendRequest(method: HttpMethods, endpoint: string): Promise<Response> {
     const url = this.requestUrl.buildUrl(endpoint);
 
-    return await fetch(url.toString(), this.buildRequestOptions(method));
+    return this.mockedResponses.isMocked()
+      ? this.mockedResponses.getMockedResponse(url.toString())
+      : await fetch(url.toString(), this.buildRequestOptions(method));
   }
 
   /**
