@@ -3,6 +3,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { HttpStatusCodes } from './enums/httpStatusCodes';
 import HttpClient from './httpClient';
 
+// @ts-ignore
 global.fetch = vi.fn();
 
 describe('HTTP Client', () => {
