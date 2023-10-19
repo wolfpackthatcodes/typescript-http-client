@@ -315,8 +315,6 @@ describe('HTTP Client', () => {
       expect(response.headers.has('Content-Type')).toBeTruthy();
       expect(response.headers.get('Content-Type')).toEqual('application/json');
       expect(await response.json()).toStrictEqual(mockedResponseBody);
-
-      console.log(mockedResponseBody);
     });
 
     it('Mocked responses is returned after faking', async () => {
