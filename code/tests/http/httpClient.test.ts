@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { HttpStatusCodes } from './enums/httpStatusCodes';
-import HttpClient from './httpClient';
+import HttpClient from '@/http/httpClient';
 
 // @ts-ignore
 global.fetch = vi.fn();

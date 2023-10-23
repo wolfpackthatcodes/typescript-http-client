@@ -15,7 +15,7 @@
         "project": "./"
       },
       "node": {
-        "paths": ["./src"],
+        "paths": ["./src", "./tests"],
         "extensions": [".js", ".jsx", ".ts", ".tsx"]
       }
     }

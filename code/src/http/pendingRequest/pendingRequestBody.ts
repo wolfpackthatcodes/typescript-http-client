@@ -1,5 +1,5 @@
-import { EmptyRequestBodyException, InvalidRequestBodyFormatException } from './exceptions';
-import { RequestBodyFormat } from './types/requestBodyFormat';
+import { EmptyRequestBodyException, InvalidRequestBodyFormatException } from '../exceptions';
+import { RequestBodyFormat } from '../types/requestBodyFormat';
 
 export default class PendingRequestBody {
   /**

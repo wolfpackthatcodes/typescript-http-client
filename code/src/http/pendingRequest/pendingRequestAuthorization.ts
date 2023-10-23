@@ -1,4 +1,4 @@
-import { RequestAuthorization } from './types/requestAuthorization';
+import { RequestAuthorization } from '../types/requestAuthorization';
 
 export default class pendingRequestAuthorization {
   /**
