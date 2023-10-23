@@ -1,9 +1,9 @@
 import MockedResponses from './responses/mockedResponses';
-import PendingRequestAuthorization from './pendingRequestAuthorization';
-import PendingRequestBody from './pendingRequestBody';
-import PendingRequestCredentials from './pendingRequestCredentials';
-import PendingRequestHeaders from './pendingRequestHeaders';
-import PendingRequestUrl from './pendingRequestUrl';
+import PendingRequestAuthorization from './pendingRequest/pendingRequestAuthorization';
+import PendingRequestBody from './pendingRequest/pendingRequestBody';
+import PendingRequestCredentials from './pendingRequest/pendingRequestCredentials';
+import PendingRequestHeaders from './pendingRequest/pendingRequestHeaders';
+import PendingRequestUrl from './pendingRequest/pendingRequestUrl';
 import { FetchOptions } from './types/fetchOptions';
 import { HttpMethods } from './types/httpMethods';
 import { RequestAuthorization } from './types/requestAuthorization';
