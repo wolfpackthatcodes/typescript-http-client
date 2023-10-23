@@ -349,5 +349,15 @@ describe('HTTP Client', () => {
       const secondResponse = await client.get('https://test.local/users/');
       expect(secondResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
     });
+
+    it('Catch a request with missing mocked response', () => {
+      const httpClient = new HttpClient()
+        .fake({ 'users/1/posts': new Response(JSON.stringify({}), { status: HttpStatusCodes.HTTP_OK }) })
+        .acceptJson()
+        .get('https://api.local/users/1/');
+
+      expect(httpClient).rejects.toThrowError('Failed to fetch mocked response');
+      expect(httpClient).rejects.toThrowError(TypeError);
+    });
   });
 });
