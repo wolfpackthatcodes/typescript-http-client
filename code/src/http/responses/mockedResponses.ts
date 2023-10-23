@@ -1,5 +1,5 @@
 import Str from '@/support/str';
-import MissingMockedResponseException from '../exceptions/missingMockedResponseException';
+import { MissingMockedResponseException } from '../exceptions';
 
 export default class MockedResponses {
   /**
