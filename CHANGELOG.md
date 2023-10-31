@@ -7,15 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.1.2] - 2023-10-31
+### Fixed
+- Vite config for generating types entry file.
+
 ## [v0.1.1] - 2023-10-31
 ### Fixed
 - Remove invalid type declaration in package.json.
 
 ## [v0.1.0] - 2023-10-31
 ### Added
-- `HEAD`, `GET`, `POST`, `PUT`, `PATCH`, `DELETE` request helper methods.
+- `HEAD`, `GET`, `POST`, `PUT`, `PATCH`, and `DELETE` request helper methods.
 - `withQueryParameters` method.
-- `accept`, `acceptJson`, `asJson`, `asForm`, `asUrlEncoded` content type methods.
+- `accept`, `acceptJson`, `asJson`, `asForm`, and `asUrlEncoded` content type methods.
 - `withHeaders`, `withHeader`, `replaceHeaders`, `replaceHeader` helper methods.
-- `withBasicAuth`, `withToken` authentication helper methods.
+- `withBasicAuth`, and `withToken` authentication helper methods.
 - `fake` method.
