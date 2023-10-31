@@ -1,7 +1,7 @@
 {
   "name": "@wolfpackthatcodes/http-client",
   "description": "An expressive, minimal wrapper around the Fetch() API allowing you to quickly make HTTP requests.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "MIT",
   "homepage": "https://github.com/wolfpackthatcodes/typescript-http-client",
   "repository": {
@@ -23,6 +23,7 @@
   "type": "module",
   "main": "./dist/index.umd.cjs",
   "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/index.js",
