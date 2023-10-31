@@ -1,15 +1,15 @@
 {
-  "name": "@wolfpackthatcodes/package-name",
-  "description": "Package description",
-  "version": "0.0.0",
+  "name": "@wolfpackthatcodes/http-client",
+  "description": "An expressive, minimal wrapper around the Fetch() API allowing you to quickly make HTTP requests.",
+  "version": "0.1.0",
   "license": "MIT",
-  "homepage": "https://github.com/wolfpackthatcodes/vite-typescript-package-toolkit",
+  "homepage": "https://github.com/wolfpackthatcodes/typescript-http-client",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wolfpackthatcodes/vite-typescript-package-toolkit.git"
+    "url": "https://github.com/wolfpackthatcodes/typescript-http-client.git"
   },
   "bugs": {
-    "url": "https://github.com/wolfpackthatcodes/vite-typescript-package-toolkit/issues/new/choose"
+    "url": "https://github.com/wolfpackthatcodes/typescript-http-client/issues/new/choose"
   },
   "author": {
     "name": "Luis Aveiro",
@@ -17,19 +17,17 @@
   },
   "keywords": [
     "wolfpackthatcodes",
-    "vite",
     "typescript",
-    "package",
-    "toolkit"
+    "http-client"
   ],
   "type": "module",
-  "main": "./dist/package-name.umd.cjs",
-  "module": "./dist/package-name.js",
+  "main": "./dist/index.umd.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/package-name.js",
-      "require": "./dist/package-name.umd.cjs"
+      "import": "./dist/index.js",
+      "require": "./dist/index.umd.cjs"
     }
   },
   "files": [
@@ -37,6 +35,7 @@
     "images",
     "CHANGELOG.md",
     "LICENSE",
+    "package.json",
     "README.md"
   ],
   "scripts": {

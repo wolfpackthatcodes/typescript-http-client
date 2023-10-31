@@ -11,8 +11,8 @@ export default defineConfig({
     sourcemap: true,
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
-      name: 'package-name',
-      fileName: 'package-name',
+      name: 'httpClient',
+      fileName: 'index',
     },
   },
   resolve: {
