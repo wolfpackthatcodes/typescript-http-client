@@ -142,7 +142,7 @@ const response = new HttpClient()
 
 #### Headers
 
-You can add multiple Headers to the request by using the `withHeaders` method. The `withHeaders` method accepts an object of key / value pairs:
+You can add multiple headers to the request by using the `withHeaders` method. The `withHeaders` method accepts an object of key / value pairs:
 
 ```typescript
 import { HttpClient } from '@wolfpackthatcodes/http-client';
@@ -155,9 +155,19 @@ const response = new HttpClient()
   .get('https://api.example.local/users');
 ```
 
+Alternatively, use `withHeader` method to include individual headers.
+
+```typescript
+import { HttpClient } from '@wolfpackthatcodes/http-client';
+
+const response = new HttpClient()
+  .withHeader('X-Header', 'value')
+  .get('https://api.example.local/users');
+```
+
 ##### Replace headers
 
-The `replaceHeader` method allow you to replace individual headers.
+The `replaceHeaders` method allow you to replace multiple headers. The `replaceHeaders` method accepts an object of key / value pairs:
 
 ```typescript
 import { HttpClient } from '@wolfpackthatcodes/http-client';
@@ -167,6 +177,19 @@ const httpClient = new HttpClient()
 
 const response = httpClient
   .replaceHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' })
+  .get('https://api.example.local/users');
+```
+
+Alternatively, use `replaceHeader` method to replace individual header.
+
+```typescript
+import { HttpClient } from '@wolfpackthatcodes/http-client';
+
+const httpClient = new HttpClient()
+  .withHeaders({ 'Content-Type': 'application/xml', Accept: 'application/html' })
+
+const response = httpClient
+  .replaceHeader('Content-Type', 'application/json')
   .get('https://api.example.local/users');
 ```
 
