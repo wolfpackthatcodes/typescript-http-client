@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.2.0] - 2023-12-24
+### Added
+- Support higher node versions.
+
+### Changed
+- Upgrade dev dependencies.
+
+### Fixed
+- Typo in Readme for FormData example.
+
 ## [v0.1.2] - 2023-10-31
 ### Fixed
 - Vite config for generating types entry file.
