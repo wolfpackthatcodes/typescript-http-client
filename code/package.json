@@ -68,7 +68,7 @@
     "vitest": "^1.1.0"
   },
   "engines": {
-    "node": "^18 || ^20"
+    "node": ">= 18"
   },
   "cacheDirectories": [
     "node_modules"
