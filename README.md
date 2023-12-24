@@ -136,7 +136,7 @@ If you would like to send data using the `multipart/form-data` content type, you
 import { HttpClient } from '@wolfpackthatcodes/http-client';
 
 const response = new HttpClient()
-  .asUrlEncoded()
+  .asForm()
   .post('https://api.example.local/users', { first_name: 'Luis', last_name: 'Aveiro' });
 ```
 
