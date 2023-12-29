@@ -52,7 +52,7 @@ export default class MockedResponses {
       return Promise.reject(new MissingMockedResponseException('Failed to fetch mocked response'));
     }
 
-    const mockedResponse = this.mockedResponses[mockedUrl];
+    const mockedResponse: Response = this.mockedResponses[mockedUrl];
 
     return new Promise((resolve) => {
       resolve(mockedResponse);

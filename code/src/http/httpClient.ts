@@ -1,12 +1,12 @@
 import MockedResponses from './responses/mockedResponses';
-import PendingRequestAuthorization from './pendingRequest/pendingRequestAuthorization';
 import PendingRequestBody from './pendingRequest/pendingRequestBody';
-import PendingRequestCredentials from './pendingRequest/pendingRequestCredentials';
-import PendingRequestHeaders from './pendingRequest/pendingRequestHeaders';
 import PendingRequestUrl from './pendingRequest/pendingRequestUrl';
-import { FetchOptions } from './types/fetchOptions';
+import { Options } from './types/options';
 import { HttpMethods } from './types/httpMethods';
 import { RequestAuthorization } from './types/requestAuthorization';
+import InvalidHeaderFormatException from './exceptions/invalidHeaderFormatException';
+import { FetchOptions } from './types/fetchOptions';
+import { RequestOptions } from './types/requestOptions';
 
 export default class HttpClient {
   /**
@@ -17,11 +17,11 @@ export default class HttpClient {
   private mockedResponses: MockedResponses;
 
   /**
-   * The request authorization instance.
+   * The request options object.
    *
-   * @var {PendingRequestAuthorization}
+   * @var {Options}
    */
-  private requestAuthorization: PendingRequestAuthorization;
+  private options: Options = {};
 
   /**
    * The request body instance.
@@ -29,20 +29,6 @@ export default class HttpClient {
    * @var {PendingRequestBody}
    */
   private requestBody: PendingRequestBody;
-
-  /**
-   * The request credentials instance.
-   *
-   * @var {PendingRequestCredentials}
-   */
-  private requestCredentials: PendingRequestCredentials;
-
-  /**
-   * The request headers instance.
-   *
-   * @var {PendingRequestHeaders}
-   */
-  private requestHeaders: PendingRequestHeaders;
 
   /**
    * The request Url instance.
@@ -55,14 +41,13 @@ export default class HttpClient {
    * Create a new Http Client instance.
    *
    * @param {string|undefined} baseUrl
+   * @param {object|undefined} options
    */
-  constructor(baseUrl?: string) {
+  constructor(baseUrl?: string, options?: object) {
     this.mockedResponses = new MockedResponses();
-    this.requestAuthorization = new PendingRequestAuthorization();
     this.requestBody = new PendingRequestBody();
-    this.requestCredentials = new PendingRequestCredentials();
-    this.requestHeaders = new PendingRequestHeaders();
     this.requestUrl = new PendingRequestUrl(baseUrl);
+    this.setOptions(options);
   }
 
   /**
@@ -129,29 +114,18 @@ export default class HttpClient {
    * @returns {FetchOptions}
    */
   private buildRequestOptions(method: HttpMethods): FetchOptions {
-    const options: FetchOptions = { method };
-
-    if (this.requestCredentials.isRequired()) {
-      options.credentials = this.requestCredentials.credentials;
-    }
-
-    if (this.requestAuthorization.isRequired()) {
-      this.requestHeaders.withHeader(
-        'Authorization',
-        `${this.requestAuthorization.type} ${this.requestAuthorization.token}`,
-      );
-    }
-
     if (this.requestBody.hasBody()) {
-      options.body = this.requestBody.parseRequestBody();
+      this.options.body = this.requestBody.parseRequestBody();
 
-      if (!this.requestHeaders.headers.has('Content-Type')) {
-        this.requestHeaders.withHeader('Content-Type', 'text/plain');
+      if (!this.options.headers?.has('Content-Type')) {
+        this.withHeader('Content-Type', 'text/plain');
       }
     }
 
-    if (this.requestHeaders.hasHeaders()) {
-      options.headers = this.requestHeaders.headers;
+    const options: FetchOptions = { method, ...this.options };
+
+    if (!this.hasHeaders()) {
+      delete options.headers;
     }
 
     return options;
@@ -165,9 +139,7 @@ export default class HttpClient {
    * @return {this}
    */
   public contentType(contentType: string): this {
-    this.requestHeaders.withHeader('Content-Type', contentType);
-
-    return this;
+    return this.withHeader('Content-Type', contentType);
   }
 
   /**
@@ -209,6 +181,15 @@ export default class HttpClient {
   }
 
   /**
+   * Check if the headers have been set for the pending request.
+   *
+   * @returns {boolean}
+   */
+  private hasHeaders(): boolean {
+    return this.options.headers !== undefined && Array.from(this.options.headers.entries()).length > 0;
+  }
+
+  /**
    * Process a HEAD request to the given URL.
    *
    * @param {string} url
@@ -239,8 +220,8 @@ export default class HttpClient {
   /**
    * Process a POST request to the given URL.
    *
-   * @param {object|string} url
-   * @param {object} data
+   * @param {string} url
+   * @param {object|string} data
    *
    * @returns {Promise<Response>}
    */
@@ -253,8 +234,8 @@ export default class HttpClient {
   /**
    * Process a PUT request to the given URL.
    *
-   * @param {object|string} url
-   * @param {object} data
+   * @param {string} url
+   * @param {object|string} data
    *
    * @returns {Promise<Response>}
    */
@@ -273,7 +254,7 @@ export default class HttpClient {
    * @returns {this}
    */
   public replaceHeader(name: string, value: string): this {
-    this.requestHeaders.replaceHeader(name, value);
+    this.options.headers?.set(name, value);
 
     return this;
   }
@@ -281,12 +262,14 @@ export default class HttpClient {
   /**
    * Replace the given headers on the request.
    *
-   * @param {object} headers
+   * @param {Headers|object} headers
    *
    * @returns {this}
    */
-  public replaceHeaders(headers: object): this {
-    for (const [key, value] of Object.entries(headers)) {
+  public replaceHeaders(headers: Headers | object): this {
+    const entries = headers instanceof Headers ? Array.from(headers.entries()) : Object.entries(headers);
+
+    for (const [key, value] of entries) {
       this.replaceHeader(key, value);
     }
 
@@ -307,6 +290,21 @@ export default class HttpClient {
     return this.mockedResponses.isMocked()
       ? this.mockedResponses.getMockedResponse(url.toString())
       : await fetch(url.toString(), this.buildRequestOptions(method));
+  }
+
+  /**
+   * Set the default options for the Http Client.
+   *
+   * @param {object|undefined} options
+   */
+  private setOptions(options?: object): void {
+    this.options = { headers: new Headers() };
+
+    if (options !== undefined) {
+      for (const [key, value] of Object.entries(options)) {
+        this.withOption(key, value);
+      }
+    }
   }
 
   /**
@@ -340,9 +338,7 @@ export default class HttpClient {
    * @returns {this}
    */
   public withCredentials(credentials: RequestCredentials = 'same-origin'): this {
-    this.requestCredentials.withCredentials(credentials);
-
-    return this;
+    return this.withOption('credentials', credentials);
   }
 
   /**
@@ -354,7 +350,7 @@ export default class HttpClient {
    * @returns {this}
    */
   public withHeader(name: string, value: string): this {
-    this.requestHeaders.withHeader(name, value);
+    this.options.headers?.append(name, value);
 
     return this;
   }
@@ -362,13 +358,52 @@ export default class HttpClient {
   /**
    * Add the given headers to the request.
    *
-   * @param {object} headers
+   * @param {Headers|object} headers
    *
    * @returns {this}
    */
-  public withHeaders(headers: object): this {
-    for (const [key, value] of Object.entries(headers)) {
+  public withHeaders(headers: Headers | object): this {
+    const entries = headers instanceof Headers ? Array.from(headers.entries()) : Object.entries(headers);
+
+    for (const [key, value] of entries) {
       this.withHeader(key, value);
+    }
+
+    return this;
+  }
+
+  /**
+   * Add the given option to the request.
+   *
+   * @param {string} key
+   * @param {RequestOptions} value
+   *
+   * @returns {this}
+   */
+  public withOption(key: string, value: RequestOptions): this {
+    if (key === 'headers') {
+      if (typeof value === 'object' && value !== null) {
+        this.withHeaders(value);
+      } else {
+        throw new InvalidHeaderFormatException('Header options must be an object.');
+      }
+    } else {
+      this.options[key] = value;
+    }
+
+    return this;
+  }
+
+  /**
+   * Add the given options to the request.
+   *
+   * @param {object} options
+   *
+   * @returns {this}
+   */
+  public withOptions(options: object): this {
+    for (const [key, value] of Object.entries(options)) {
+      this.withOption(key, value);
     }
 
     return this;
@@ -396,8 +431,6 @@ export default class HttpClient {
    * @returns {this}
    */
   public withToken(token: string, type: RequestAuthorization = 'Bearer'): this {
-    this.requestAuthorization.withToken(token, type);
-
-    return this;
+    return this.withHeader('Authorization', `${type} ${token.trim()}`);
   }
 }

@@ -11,7 +11,7 @@
 <p align="center">
   <a href="#about">About</a> •
   <a href="#disclaimer">Disclaimer</a> •
-  <a href="#install">Install</a> •
+  <a href="#getting-started">Getting Started</a> •
   <a href="#how-to-use">How To Use</a>
 </p>
 <p align="center">
@@ -30,9 +30,15 @@ HTTP Client is an expressive, minimal wrapper around the [Fetch()](https://devel
 
 Until HTTP Client reaches a 1.0.0 release, breaking changes will be released with a new minor version.
 
-## Install
+## Getting Started
 
-You can install HTTP Client from npm registry and GitHub Packages.
+You will need to make sure your system meets the following prerequisites:
+
+- Node.js >= 18.0.0
+
+#### Package installation
+
+You can install HTTP Client from npm registry or GitHub Packages.
 
 ```shell
 npm install @wolfpackthatcodes/http-client
@@ -44,7 +50,10 @@ To install HTTP Client from GitHub Packages, follow the steps in the GitHub docu
 
 This project is a work-in-progress. Code and documentation are currently under development and are subject to change.
 
-#### Making requests
+Documentation on the available functionality has been outlined below for you to get started:
+
+<details>
+<summary><b>1. Making requests</b></summary>
 
 Since the HTTP Client is a wrapper for Fetch() API, you can still make `HEAD`, `GET`, `POST`, `PUT`, `PATCH`, `DELETE` requests using the respectively helper methods provided.
 
@@ -91,7 +100,10 @@ const response = new HttpClient()
   .get('https://api.example.local/users');
 ```
 
-#### Send request with data
+</details>
+
+<details>
+<summary><b>2. Sending request with data</b></summary>
 
 You can send additional data with your `POST`, `PUT`, and `PATCH` requests. These methods accept either a string or an object of data as their second argument.
 
@@ -102,7 +114,7 @@ const response = new HttpClient()
   .post('https://api.example.local/users/1/notes', 'Example text.');
 ```
 
-By default, data will be sent with a header of `Content-Type: text/plain`. 
+By default, data will be sent with a header of `Content-Type: text/plain`.
 
 ##### Send data as JSON
 
@@ -140,22 +152,31 @@ const response = new HttpClient()
   .post('https://api.example.local/users', { first_name: 'Luis', last_name: 'Aveiro' });
 ```
 
-#### Headers
+</details>
 
-You can add multiple headers to the request by using the `withHeaders` method. The `withHeaders` method accepts an object of key / value pairs:
+<details>
+<summary><b>3. Include headers</b></summary>
+
+You can add multiple headers to the request by using the `withHeaders` method. The `withHeaders` method accepts an object of key / value pairs or Headers instance:
 
 ```typescript
 import { HttpClient } from '@wolfpackthatcodes/http-client';
 
-const response = new HttpClient()
-  .withHeaders({
+const headers = {
     'X-Header': 'value',
     'Y-Header': 'value',
-  })
+};
+
+const firstResponse = new HttpClient()
+  .withHeaders(headers)
   .get('https://api.example.local/users');
+
+const secondResponse = new HttpClient()
+  .withHeaders(new Headers(headers))
+  .get('https://api.example.local/posts');
 ```
 
-Alternatively, use `withHeader` method to include individual headers.
+Alternatively, use `withHeader` method to include an individual header.
 
 ```typescript
 import { HttpClient } from '@wolfpackthatcodes/http-client';
@@ -167,16 +188,25 @@ const response = new HttpClient()
 
 ##### Replace headers
 
-The `replaceHeaders` method allow you to replace multiple headers. The `replaceHeaders` method accepts an object of key / value pairs:
+The `replaceHeaders` method allow you to replace multiple headers. The `replaceHeaders` method accepts an object of key / value pairs or Headers instance:
 
 ```typescript
 import { HttpClient } from '@wolfpackthatcodes/http-client';
 
 const httpClient = new HttpClient()
-  .withHeaders({ 'Content-Type': 'application/xml', Accept: 'application/html' })
+  .withHeaders({ 'Content-Type': 'application/xml', Accept: 'application/html' });
 
-const response = httpClient
-  .replaceHeaders({ 'Content-Type': 'application/json', Accept: 'application/json' })
+const updatedHeaders = {
+  'Content-Type': 'application/json',
+  Accept: 'application/json'
+};
+
+const firstResponse = httpClient
+  .replaceHeaders(updatedHeaders)
+  .get('https://api.example.local/users');
+
+const secondResponse = httpClient
+  .replaceHeaders(new Headers(updatedHeaders))
   .get('https://api.example.local/users');
 ```
 
@@ -186,7 +216,7 @@ Alternatively, use `replaceHeader` method to replace individual header.
 import { HttpClient } from '@wolfpackthatcodes/http-client';
 
 const httpClient = new HttpClient()
-  .withHeaders({ 'Content-Type': 'application/xml', Accept: 'application/html' })
+  .withHeaders({ 'Content-Type': 'application/xml', Accept: 'application/html' });
 
 const response = httpClient
   .replaceHeader('Content-Type', 'application/json')
@@ -215,16 +245,17 @@ const response = new HttpClient()
   .get('https://api.example.local/users');
 ```
 
-#### Authentication
+</details>
+
+<details>
+<summary><b>4. Include authentication</b></summary>
 
 You may specify basic authentication credentials using the `withBasicAuth` and method.
 
 ```typescript
 import { HttpClient } from '@wolfpackthatcodes/http-client';
 
-const response = new HttpClient()
-  .withBasicAuth('luisaveiro', 'secret')
-  .get('https://api.example.local/settings');
+const response = new HttpClient().withBasicAuth('luisaveiro', 'secret').get('https://api.example.local/settings');
 ```
 
 ##### Bearer Tokens
@@ -234,14 +265,43 @@ If you would like to quickly add a bearer token to the request's Authorization h
 ```typescript
 import { HttpClient } from '@wolfpackthatcodes/http-client';
 
-const response = new HttpClient()
-  .withToken('token')
-  .get('https://api.example.local/settings');
+const response = new HttpClient().withToken('your-token').get('https://api.example.local/settings');
 ```
 
-#### Testing
+</details>
 
-The HTTP Client offers a `fake` method that allows you to instruct the HTTP Client to return mocked responses when requests are made.
+<details>
+<summary><b>5. Include Fetch options</b></summary>
+
+You may specify additional Fetch() API [Request options](https://developer.mozilla.org/en-US/docs/Web/API/fetch#options) using the `withOptions` method. The `withOptions` method accepts an object of key / value pairs:
+
+```typescript
+import { HttpClient } from '@wolfpackthatcodes/http-client';
+
+const response = new HttpClient()
+  .withOptions({ 
+    credentials: 'same-origin',
+    mode: 'same-origin' 
+  })
+  .get('https://api.example.local/users');
+```
+
+Alternatively, use `withOption` method to include an individual option.
+
+```typescript
+import { HttpClient } from '@wolfpackthatcodes/http-client';
+
+const response = new HttpClient()
+  .withOption('credentials', 'same-origin')
+  .get('https://api.example.local/users');
+```
+
+</details>
+
+<details>
+<summary><b>6. Testing</b></summary>
+
+The HTTP Client offers a `fake` method that allows you to instruct the HTTP Client to return mocked responses when requests are made. The `fake` method will prevent the HTTP Client to make a HTTP request.
 
 ```typescript
 import { HttpClient } from '@wolfpackthatcodes/http-client';
@@ -254,9 +314,9 @@ interface User {
 
 function createUserArray(): User[] {
   const users: User[] = [
-    { id: 1, name: "John Doe", email: "john.doe@example.com" },
-    { id: 2, name: "Jane Smith", email: "jane.smith@example.com" },
-    { id: 3, name: "Alice Johnson", email: "alice.johnson@example.com" },
+    { id: 1, name: 'John Doe', email: 'john.doe@example.com' },
+    { id: 2, name: 'Jane Smith', email: 'jane.smith@example.com' },
+    { id: 3, name: 'Alice Johnson', email: 'alice.johnson@example.com' },
     // Add more user objects as needed
   ];
 
@@ -273,6 +333,8 @@ const response = new HttpClient()
   .acceptJson()
   .get('https://api.example.local/users');
 ```
+
+</details>
 
 ## Changelog
 
