@@ -262,12 +262,14 @@ export default class HttpClient {
   /**
    * Replace the given headers on the request.
    *
-   * @param {object} headers
+   * @param {Headers|object} headers
    *
    * @returns {this}
    */
-  public replaceHeaders(headers: object): this {
-    for (const [key, value] of Object.entries(headers)) {
+  public replaceHeaders(headers: Headers | object): this {
+    const entries = headers instanceof Headers ? Array.from(headers.entries()) : Object.entries(headers);
+
+    for (const [key, value] of entries) {
       this.replaceHeader(key, value);
     }
 
