@@ -79,9 +79,9 @@ export default class PendingRequestBody {
    *
    * @throws {EmptyRequestBodyException|InvalidRequestBodyFormatException}
    *
-   * @returns {FormData|URLSearchParams|string}
+   * @returns {string|FormData|URLSearchParams}
    */
-  public parseRequestBody(): FormData | URLSearchParams | string {
+  public parseRequestBody(): string | FormData | URLSearchParams {
     if (this.body === undefined) {
       throw new EmptyRequestBodyException('Request body has no data.');
     }
