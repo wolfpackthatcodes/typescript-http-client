@@ -356,11 +356,11 @@ export default class HttpClient {
   /**
    * Add the given headers to the request.
    *
-   * @param {object} headers
+   * @param {Headers|object} headers
    *
    * @returns {this}
    */
-  public withHeaders(headers: object): this {
+  public withHeaders(headers: Headers | object): this {
     const entries = headers instanceof Headers ? Array.from(headers.entries()) : Object.entries(headers);
 
     for (const [key, value] of entries) {
