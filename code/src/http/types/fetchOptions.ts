@@ -1,8 +1,6 @@
 import { HttpMethods } from './httpMethods';
+import { Options } from './options';
 
-export type FetchOptions = {
+export type FetchOptions = Options & {
   method: HttpMethods;
-  headers?: Headers;
-  credentials?: RequestCredentials;
-  body?: URLSearchParams | FormData | string;
 };
