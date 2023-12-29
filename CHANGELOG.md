@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.3.0] - 2023-12-29
+### Added
+- `withOption` and `withOptions` helper methods.
+
+### Changed
+- The HTTP Client constructor to accept an optional second parameter as an object for Fetch Options.
+- `replaceHeader`, `withCredentials`, `withHeader` and `withToken` methods to utilize the withOptions method or the options property.
+- `replaceHeaders` and `withHeaders` methods accept Header instances.
+
+### Fixed
+- Missing type for mockedResponse variable.
+
+### Removed
+- `PendingRequestAuthorization`, `PendingRequestCredentials`, and `PendingRequestHeaders` instances within the HTTP Client.
+
 ## [v0.2.0] - 2023-12-24
 ### Added
 - Support higher node versions.
