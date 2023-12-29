@@ -240,20 +240,37 @@ describe('HTTP Client', () => {
       new HttpClient().withHeaders(headers).head('https://api.local/test/');
 
       expect(fetch).toHaveBeenCalledWith('https://api.local/test/', { method: 'HEAD', headers: new Headers(headers) });
+
+      // @ts-ignore
+      global.fetch.mockReset();
+
+      new HttpClient().withHeaders(new Headers(headers)).head('https://api.local/test/');
+
+      expect(fetch).toHaveBeenCalledWith('https://api.local/test/', { method: 'HEAD', headers: new Headers(headers) });
     });
 
     it('Send a request with updated headers', () => {
+      const defaultHeaders = { 'Accept-Encoding': 'gzip, deflate', 'Content-Type': 'application/html' };
+      const updatedHeaders = { 'Accept-Encoding': 'gzip, deflate, br', 'Content-Type': 'application/json' };
+
+      new HttpClient('https://api.local/').withHeaders(defaultHeaders).replaceHeaders(updatedHeaders).head('/test/');
+
+      expect(fetch).toHaveBeenCalledWith('https://api.local/test/', {
+        method: 'HEAD',
+        headers: new Headers(updatedHeaders),
+      });
+
+      // @ts-ignore
+      global.fetch.mockReset();
+
       new HttpClient('https://api.local/')
-        .withHeaders({ 'Accept-Encoding': 'gzip, deflate', 'Content-Type': 'application/html' })
-        .replaceHeaders({ 'Accept-Encoding': 'gzip, deflate, br', 'Content-Type': 'application/json' })
+        .withHeaders(defaultHeaders)
+        .replaceHeaders(new Headers(updatedHeaders))
         .head('/test/');
 
       expect(fetch).toHaveBeenCalledWith('https://api.local/test/', {
         method: 'HEAD',
-        headers: new Headers({
-          'Accept-Encoding': 'gzip, deflate, br',
-          'Content-Type': 'application/json',
-        }),
+        headers: new Headers(updatedHeaders),
       });
     });
 
