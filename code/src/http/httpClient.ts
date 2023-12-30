@@ -23,13 +23,6 @@ export default class HttpClient {
   private mockedResponses: MockedResponses;
 
   /**
-   * The request options object.
-   *
-   * @var {Options}
-   */
-  private options: Options = {};
-
-  /**
    * Number of attempts for the request.
    *
    * @var {number}
@@ -42,6 +35,13 @@ export default class HttpClient {
    * @var {PendingRequestBody}
    */
   private requestBody: PendingRequestBody;
+
+  /**
+   * The request options object.
+   *
+   * @var {Options}
+   */
+  private requestOptions: Options = {};
 
   /**
    * The number of times to try the request.
@@ -172,14 +172,14 @@ export default class HttpClient {
    */
   private buildRequestOptions(method: HttpMethods): FetchOptions {
     if (this.requestBody.hasBody()) {
-      this.options.body = this.requestBody.parseRequestBody();
+      this.requestOptions.body = this.requestBody.parseRequestBody();
 
-      if (!this.options.headers?.has('Content-Type')) {
+      if (!this.requestOptions.headers?.has('Content-Type')) {
         this.withHeader('Content-Type', 'text/plain');
       }
     }
 
-    const options: FetchOptions = { method, ...this.options };
+    const options: FetchOptions = { method, ...this.requestOptions };
 
     if (!this.hasHeaders()) {
       delete options.headers;
@@ -279,7 +279,7 @@ export default class HttpClient {
    * @returns {boolean}
    */
   private hasHeaders(): boolean {
-    return this.options.headers !== undefined && Array.from(this.options.headers.entries()).length > 0;
+    return this.requestOptions.headers !== undefined && Array.from(this.requestOptions.headers.entries()).length > 0;
   }
 
   /**
@@ -296,6 +296,19 @@ export default class HttpClient {
     if (query) this.withQueryParameters(query);
 
     return this.sendRequest('HEAD');
+  }
+
+  /**
+   * Process a OPTIONS request to the given URL.
+   *
+   * @param {string} url
+   *
+   * @returns {Promise<Response>}
+   */
+  public options(url: string): Promise<Response> {
+    this.withUrl(url);
+
+    return this.sendRequest('OPTIONS');
   }
 
   /**
@@ -352,7 +365,7 @@ export default class HttpClient {
    * @returns {this}
    */
   public replaceHeader(name: string, value: string): this {
-    this.options.headers?.set(name, value);
+    this.requestOptions.headers?.set(name, value);
 
     return this;
   }
@@ -453,7 +466,7 @@ export default class HttpClient {
    * @param {object|undefined} options
    */
   private setOptions(options?: object): void {
-    this.options = { headers: new Headers() };
+    this.requestOptions = { headers: new Headers() };
 
     if (options !== undefined) {
       for (const [key, value] of Object.entries(options)) {
@@ -505,7 +518,7 @@ export default class HttpClient {
    * @returns {this}
    */
   public withHeader(name: string, value: string): this {
-    this.options.headers?.append(name, value);
+    this.requestOptions.headers?.append(name, value);
 
     return this;
   }
@@ -543,7 +556,7 @@ export default class HttpClient {
         throw new InvalidHeaderFormatException('Header options must be an object.');
       }
     } else {
-      this.options[key] = value;
+      this.requestOptions[key] = value;
     }
 
     return this;
