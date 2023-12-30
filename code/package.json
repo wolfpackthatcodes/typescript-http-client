@@ -18,7 +18,9 @@
   "keywords": [
     "wolfpackthatcodes",
     "typescript",
-    "http-client"
+    "http-client",
+    "fetch",
+    "promise"
   ],
   "type": "module",
   "main": "./dist/index.umd.cjs",
@@ -32,7 +34,6 @@
   },
   "files": [
     "dist",
-    "images",
     "CHANGELOG.md",
     "LICENSE",
     "package.json",
