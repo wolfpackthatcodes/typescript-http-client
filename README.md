@@ -1,6 +1,6 @@
 <p align="center">
   <a href="http://github.com/wolfpackthatcodes/vite-typescript-package-toolkit">
-    <img src="./images/banner.png" alt="banner" width="100%">
+    <img src="https://github.com/wolfpackthatcodes/typescript-http-client/blob/main/images/banner.png?raw=true" alt="banner" width="100%">
   </a>
 </p>
 
@@ -67,6 +67,16 @@ Let's see how to make a basic `HEAD` request to another URL:
 import { HttpClient } from '@wolfpackthatcodes/http-client';
 
 const response = new HttpClient().head('https://api.example.local');
+```
+
+##### Send a OPTIONS request.
+
+Let's see how to make a basic `OPTIONS` request to another URL:
+
+```typescript
+import { HttpClient } from '@wolfpackthatcodes/http-client';
+
+const response = new HttpClient().options('https://api.example.local');
 ```
 
 ##### Send a GET request.
@@ -374,7 +384,7 @@ Trying to report a possible security vulnerability in **_HTTP Client_**? Please 
 Do you like this project? Support it by donating.
 
 <a href="https://www.buymeacoffee.com/luisaveiro">
-  <img src="./images/bmc-button.svg" alt="Code Review" width="144">
+  <img src="https://raw.githubusercontent.com/wolfpackthatcodes/typescript-http-client/e9631c6cd6a5a311d1670c7200d84b72cbb4246c/images/bmc-button.svg" alt="Code Review" width="144">
 </a>
 
 ## License
