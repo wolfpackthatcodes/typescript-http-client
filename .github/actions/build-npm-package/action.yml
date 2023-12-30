@@ -12,4 +12,4 @@ runs:
 
     - name: Copy additional project files
       shell: bash
-      run: cp -r images/ LICENSE CHANGELOG.md README.md ${{ env.working-directory }}/
+      run: cp -r LICENSE CHANGELOG.md README.md ${{ env.working-directory }}/
