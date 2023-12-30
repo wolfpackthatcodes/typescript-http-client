@@ -2,6 +2,7 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { HttpStatusCodes } from './enums/httpStatusCodes';
 import HttpClient from '@/http/httpClient';
+import { MissingMockedResponseException } from '@/http/exceptions';
 
 // @ts-ignore
 global.fetch = vi.fn();
@@ -326,6 +327,58 @@ describe('HTTP Client', () => {
       new HttpClient('https://api.local/').withOption('mode', 'same-origin').head('/test/');
 
       expect(fetch).toHaveBeenCalledWith('https://api.local/test/', { method: 'HEAD', mode: 'same-origin' });
+    });
+  });
+
+  describe('Send a request with retry mechanism', () => {
+    it('Send a request with retry', async () => {
+      const mockedResponse = new Response(null, {
+        status: HttpStatusCodes.HTTP_SERVICE_UNAVAILABLE,
+      });
+
+      // @ts-ignore
+      global.fetch.mockResolvedValue(mockedResponse);
+
+      await new HttpClient().retry(2, 1).get('https://api.local/test/');
+
+      expect(fetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('Send a request with retry callback', async () => {
+      const mockedResponse = new Response(null, {
+        status: HttpStatusCodes.HTTP_SERVICE_UNAVAILABLE,
+      });
+
+      // @ts-ignore
+      global.fetch.mockResolvedValue(mockedResponse);
+
+      await new HttpClient()
+        .retry(1, 1, (response) => {
+          return response !== undefined && response.status !== HttpStatusCodes.HTTP_NOT_FOUND;
+        })
+        .get('https://api.local/test/');
+
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('Retry a request with missing mocked response', async () => {
+      // @ts-ignore
+      const spy = vi.spyOn(HttpClient.prototype, 'sendRequest');
+      const MockedResponse = new Response(JSON.stringify({}), { status: HttpStatusCodes.HTTP_OK });
+
+      await new HttpClient()
+        .fake({ 'users/1/posts': MockedResponse })
+        .retry(1, 1, (_response, request, error) => {
+          if (error instanceof MissingMockedResponseException) {
+            request.fake({ '*': MockedResponse });
+          }
+
+          return true;
+        })
+        .acceptJson()
+        .get('https://api.local/users/1/');
+
+      expect(spy).toHaveBeenCalledTimes(2);
     });
   });
 

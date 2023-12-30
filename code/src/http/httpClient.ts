@@ -1,6 +1,5 @@
 import MockedResponses from './responses/mockedResponses';
 import PendingRequestBody from './pendingRequest/pendingRequestBody';
-import PendingRequestUrl from './pendingRequest/pendingRequestUrl';
 import { Options } from './types/options';
 import { HttpMethods } from './types/httpMethods';
 import { RequestAuthorization } from './types/requestAuthorization';
@@ -9,6 +8,13 @@ import { FetchOptions } from './types/fetchOptions';
 import { RequestOptions } from './types/requestOptions';
 
 export default class HttpClient {
+  /**
+   * The base URL for the request.
+   *
+   * @var {string}
+   */
+  private baseUrl: string = '';
+
   /**
    * The mocked responses instance.
    *
@@ -24,6 +30,13 @@ export default class HttpClient {
   private options: Options = {};
 
   /**
+   * Number of attempts for the request.
+   *
+   * @var {number}
+   */
+  private requestAttempts: number = 0;
+
+  /**
    * The request body instance.
    *
    * @var {PendingRequestBody}
@@ -31,11 +44,39 @@ export default class HttpClient {
   private requestBody: PendingRequestBody;
 
   /**
-   * The request Url instance.
+   * The number of times to try the request.
    *
-   * @var {PendingRequestUrl}
+   * @var {number}
    */
-  private requestUrl: PendingRequestUrl;
+  private retries: number = 0;
+
+  /**
+   * The number of milliseconds to wait between retries.
+   *
+   * @var {number}
+   */
+  private retryDelay: number = 0;
+
+  /**
+   * The callback that will determine if the request should be retried.
+   *
+   * @var {function}
+   */
+  private retryCallback?: (response: Response | undefined, request: this, error?: unknown) => boolean | null;
+
+  /**
+   * The URL for the request.
+   *
+   * @returns {string}
+   */
+  private url: string = '';
+
+  /**
+   * The query parameters for the request URL.
+   *
+   * @returns {Record<string, string>|undefined}
+   */
+  private urlQueryParameters?: Record<string, string>;
 
   /**
    * Create a new Http Client instance.
@@ -46,7 +87,8 @@ export default class HttpClient {
   constructor(baseUrl?: string, options?: object) {
     this.mockedResponses = new MockedResponses();
     this.requestBody = new PendingRequestBody();
-    this.requestUrl = new PendingRequestUrl(baseUrl);
+
+    this.setBaseUrl(baseUrl);
     this.setOptions(options);
   }
 
@@ -107,6 +149,21 @@ export default class HttpClient {
   }
 
   /**
+   * Try the request to the given URL.
+   *
+   * @param {HttpMethods} method
+   *
+   * @returns {Promise<Response>}
+   */
+  private async attemptRequest(method: HttpMethods): Promise<Response> {
+    const url: URL = this.buildUrl();
+
+    return this.mockedResponses.isMocked()
+      ? this.mockedResponses.getMockedResponse(url.toString())
+      : await fetch(url.toString(), this.buildRequestOptions(method));
+  }
+
+  /**
    * Construct the Fetch API Options for the request.
    *
    * @param {HttpMethods} method
@@ -132,6 +189,25 @@ export default class HttpClient {
   }
 
   /**
+   * Construct the URL for the pending request.
+   *
+   * @returns {URL}
+   */
+  private buildUrl(): URL {
+    let url = this.url.replace(/^\/|\/$/g, '') + '/';
+
+    if (!(url.startsWith('http://') || url.startsWith('https://'))) {
+      url = this.baseUrl.replace(/\/$/, '') + '/' + url;
+    }
+
+    if (this.urlQueryParameters !== undefined) {
+      url += '?' + new URLSearchParams(this.urlQueryParameters);
+    }
+
+    return new URL(url);
+  }
+
+  /**
    * Specify the request's content type.
    *
    * @param {string} contentType
@@ -143,6 +219,19 @@ export default class HttpClient {
   }
 
   /**
+   * Delays the execution of the request by the specified number of milliseconds.
+   *
+   * @param {number} milliseconds
+   *
+   * @returns {Promise<void>}
+   */
+  private delayRequest(milliseconds: number): Promise<void> {
+    return new Promise((resolve) => {
+      setTimeout(resolve, milliseconds);
+    });
+  }
+
+  /**
    * Process a DELETE request to the given URL.
    *
    * @param {string} url
@@ -150,7 +239,9 @@ export default class HttpClient {
    * @returns {Promise<Response>}
    */
   public delete(url: string): Promise<Response> {
-    return this.sendRequest('DELETE', url);
+    this.withUrl(url);
+
+    return this.sendRequest('DELETE');
   }
 
   /**
@@ -175,9 +266,11 @@ export default class HttpClient {
    * @returns {Promise<Response>}
    */
   public get(url: string, query?: object): Promise<Response> {
+    this.withUrl(url);
+
     if (query) this.withQueryParameters(query);
 
-    return this.sendRequest('GET', url);
+    return this.sendRequest('GET');
   }
 
   /**
@@ -198,9 +291,11 @@ export default class HttpClient {
    * @returns {Promise<Response>}
    */
   public head(url: string, query?: object): Promise<Response> {
+    this.withUrl(url);
+
     if (query) this.withQueryParameters(query);
 
-    return this.sendRequest('HEAD', url);
+    return this.sendRequest('HEAD');
   }
 
   /**
@@ -212,9 +307,10 @@ export default class HttpClient {
    * @returns {Promise<Response>}
    */
   public patch(url: string, data: object | string): Promise<Response> {
+    this.withUrl(url);
     this.withBody(data);
 
-    return this.sendRequest('PATCH', url);
+    return this.sendRequest('PATCH');
   }
 
   /**
@@ -226,9 +322,10 @@ export default class HttpClient {
    * @returns {Promise<Response>}
    */
   public post(url: string, data: object | string): Promise<Response> {
+    this.withUrl(url);
     this.withBody(data);
 
-    return this.sendRequest('POST', url);
+    return this.sendRequest('POST');
   }
 
   /**
@@ -240,9 +337,10 @@ export default class HttpClient {
    * @returns {Promise<Response>}
    */
   public put(url: string, data: object | string): Promise<Response> {
+    this.withUrl(url);
     this.withBody(data);
 
-    return this.sendRequest('PUT', url);
+    return this.sendRequest('PUT');
   }
 
   /**
@@ -277,23 +375,80 @@ export default class HttpClient {
   }
 
   /**
-   * Send the request to the given URL.
+   * Specify the number of times the request should be attempted.
    *
-   * @param {HttpMethods} method
-   * @param {string} endpoint
+   * @param {number} maxAttempts
+   * @param {number} intervalMilliseconds
+   * @param {function} callback
    *
-   * @returns {Promise<Response>}
+   * @returns {this}
    */
-  private async sendRequest(method: HttpMethods, endpoint: string): Promise<Response> {
-    const url = this.requestUrl.buildUrl(endpoint);
+  retry(
+    maxAttempts: number,
+    intervalMilliseconds: number,
+    callback?: (response: Response | undefined, request: this, error?: unknown) => boolean | null,
+  ): this {
+    this.retries = maxAttempts;
+    this.retryDelay = intervalMilliseconds;
+    this.retryCallback = callback;
 
-    return this.mockedResponses.isMocked()
-      ? this.mockedResponses.getMockedResponse(url.toString())
-      : await fetch(url.toString(), this.buildRequestOptions(method));
+    return this;
   }
 
   /**
-   * Set the default options for the Http Client.
+   * Send the request to the given URL.
+   *
+   * @param {HttpMethods} method
+   *
+   * @returns {Promise<Response>}
+   */
+  private async sendRequest(method: HttpMethods): Promise<Response> {
+    this.requestAttempts++;
+
+    try {
+      const response: Response = await this.attemptRequest(method);
+      const successfulResponse: boolean = response !== undefined && response.ok;
+      const shouldRetry = this.retryCallback ? this.retryCallback(response, this) : true;
+
+      if (!successfulResponse && shouldRetry === true && this.requestAttempts <= this.retries) {
+        await this.delayRequest(this.retryDelay);
+
+        if (this.retryCallback) {
+          this.retryCallback(response, this);
+        }
+
+        return this.sendRequest(method);
+      } else {
+        return response;
+      }
+    } catch (error) {
+      if (this.requestAttempts <= this.retries) {
+        await this.delayRequest(this.retryDelay);
+
+        if (this.retryCallback) {
+          this.retryCallback(undefined, this, error);
+        }
+
+        return this.sendRequest(method);
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  /**
+   * Set the base URL for the request.
+   *
+   * @param {string} baseUrl
+   *
+   * @returns {void}
+   */
+  private setBaseUrl(baseUrl: string = ''): void {
+    this.baseUrl = baseUrl;
+  }
+
+  /**
+   * Set the default options for the request.
    *
    * @param {object|undefined} options
    */
@@ -417,7 +572,7 @@ export default class HttpClient {
    * @returns {this}
    */
   public withQueryParameters(query: object): this {
-    this.requestUrl.withQueryParameters(query);
+    this.urlQueryParameters = { ...this.urlQueryParameters, ...query };
 
     return this;
   }
@@ -432,5 +587,18 @@ export default class HttpClient {
    */
   public withToken(token: string, type: RequestAuthorization = 'Bearer'): this {
     return this.withHeader('Authorization', `${type} ${token.trim()}`);
+  }
+
+  /**
+   * Specify the URL for the request.
+   *
+   * @param {string} url
+   *
+   * @returns {this}
+   */
+  public withUrl(url: string): this {
+    this.url = url;
+
+    return this;
   }
 }

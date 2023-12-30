@@ -299,7 +299,26 @@ const response = new HttpClient()
 </details>
 
 <details>
-<summary><b>6. Testing</b></summary>
+<summary><b>6. Retry mechanism</b></summary>
+
+The HTTP Clients offers a `retry` method to retry the request automatically if the request attempt fails. 
+
+The `retry` method specifies the maximum number of attempts, the interval in milliseconds between attempts, and an optional callback function to determine whether a retry should be attempted based on the response, the request and the error instance.
+
+```typescript
+import { HttpClient } from '@wolfpackthatcodes/http-client';
+
+const response = new HttpClient()
+  .retry(3, 1000, (response, request, error) => {
+    return response !== undefined && response.status !== 404;
+  })
+  .get('https://api.example.local/test/');
+```
+
+</details>
+
+<details>
+<summary><b>7. Testing</b></summary>
 
 The HTTP Client offers a `fake` method that allows you to instruct the HTTP Client to return mocked responses when requests are made. The `fake` method will prevent the HTTP Client to make a HTTP request.
 
