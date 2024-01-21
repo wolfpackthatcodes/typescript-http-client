@@ -67,22 +67,22 @@ export default class HttpClient {
   /**
    * The URL for the request.
    *
-   * @returns {string}
+   * @var {string}
    */
   private url: string = '';
 
   /**
    * The query parameters for the request URL.
    *
-   * @returns {Record<string, string>|undefined}
+   * @var {Record<string, string> | undefined}
    */
   private urlQueryParameters?: Record<string, string>;
 
   /**
    * Create a new Http Client instance.
    *
-   * @param {string|undefined} baseUrl
-   * @param {object|undefined} options
+   * @param {string | undefined} baseUrl
+   * @param {object | undefined} options
    */
   constructor(baseUrl?: string, options?: object) {
     this.mockedResponses = new MockedResponses();
@@ -261,7 +261,7 @@ export default class HttpClient {
    * Process a GET request to the given URL.
    *
    * @param {string} url
-   * @param {object|undefined} query
+   * @param {object | undefined} query
    *
    * @returns {Promise<Response>}
    */
@@ -286,7 +286,7 @@ export default class HttpClient {
    * Process a HEAD request to the given URL.
    *
    * @param {string} url
-   * @param {object|undefined} query
+   * @param {object | undefined} query
    *
    * @returns {Promise<Response>}
    */
@@ -315,7 +315,7 @@ export default class HttpClient {
    * Process a PATCH request to the given URL.
    *
    * @param {string} url
-   * @param {object|string} data
+   * @param {object | string} data
    *
    * @returns {Promise<Response>}
    */
@@ -330,7 +330,7 @@ export default class HttpClient {
    * Process a POST request to the given URL.
    *
    * @param {string} url
-   * @param {object|string} data
+   * @param {object | string} data
    *
    * @returns {Promise<Response>}
    */
@@ -345,7 +345,7 @@ export default class HttpClient {
    * Process a PUT request to the given URL.
    *
    * @param {string} url
-   * @param {object|string} data
+   * @param {object | string} data
    *
    * @returns {Promise<Response>}
    */
@@ -373,7 +373,7 @@ export default class HttpClient {
   /**
    * Replace the given headers on the request.
    *
-   * @param {Headers|object} headers
+   * @param {Headers | object} headers
    *
    * @returns {this}
    */
@@ -463,7 +463,7 @@ export default class HttpClient {
   /**
    * Set the default options for the request.
    *
-   * @param {object|undefined} options
+   * @param {object | undefined} options
    */
   private setOptions(options?: object): void {
     this.requestOptions = { headers: new Headers() };
@@ -490,7 +490,7 @@ export default class HttpClient {
   /**
    * Attach body data to the request.
    *
-   * @param {object|string} body
+   * @param {object | string} body
    *
    * @returns {void}
    */
@@ -526,7 +526,7 @@ export default class HttpClient {
   /**
    * Add the given headers to the request.
    *
-   * @param {Headers|object} headers
+   * @param {Headers | object} headers
    *
    * @returns {this}
    */

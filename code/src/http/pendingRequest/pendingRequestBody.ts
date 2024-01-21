@@ -5,7 +5,7 @@ export default class PendingRequestBody {
   /**
    * The request body data.
    *
-   * @var {object|string|undefined}
+   * @var {object | string | undefined}
    */
   public body?: object | string;
 
@@ -55,7 +55,7 @@ export default class PendingRequestBody {
   /**
    * Specify the body data of the request.
    *
-   * @param {object|string} body
+   * @param {object | string} body
    *
    * @return {void}
    */
@@ -77,9 +77,9 @@ export default class PendingRequestBody {
   /**
    * Process request body contents to desirable format.
    *
-   * @throws {EmptyRequestBodyException|InvalidRequestBodyFormatException}
+   * @throws {EmptyRequestBodyException | InvalidRequestBodyFormatException}
    *
-   * @returns {string|FormData|URLSearchParams}
+   * @returns {string | FormData | URLSearchParams}
    */
   public parseRequestBody(): string | FormData | URLSearchParams {
     if (this.body === undefined) {
