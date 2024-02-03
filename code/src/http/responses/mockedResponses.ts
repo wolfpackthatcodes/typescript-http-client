@@ -54,8 +54,6 @@ export default class MockedResponses {
 
     const mockedResponse: Response = this.mockedResponses[mockedUrl];
 
-    return new Promise((resolve) => {
-      resolve(mockedResponse);
-    });
+    return Promise.resolve(mockedResponse);
   }
 }

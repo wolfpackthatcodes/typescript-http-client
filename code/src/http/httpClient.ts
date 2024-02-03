@@ -194,7 +194,7 @@ export default class HttpClient {
    * @returns {URL}
    */
   private buildUrl(): URL {
-    let url = this.url.replace(/^\/|\/$/g, '') + '/';
+    let url = this.url.replace(/^(\/)|(\/)$/g, '') + '/';
 
     if (!(url.startsWith('http://') || url.startsWith('https://'))) {
       url = this.baseUrl.replace(/\/$/, '') + '/' + url;

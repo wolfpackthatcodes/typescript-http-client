@@ -3,6 +3,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { HttpStatusCodes } from './enums/httpStatusCodes';
 import HttpClient from '@/http/httpClient';
 import { MissingMockedResponseException } from '@/http/exceptions';
+import { generateRandomNumber, generateSecurePassword } from 'tests/utils';
 
 // @ts-ignore
 global.fetch = vi.fn();
@@ -182,7 +183,7 @@ describe('HTTP Client', () => {
 
   describe('Send requests with Authentication', () => {
     it('Send a request with a Basic Authentication', () => {
-      const user = { name: 'luis.aveiro', password: (Math.random() + 10).toString(36).substring(2) };
+      const user = { name: 'luis.aveiro', password: generateSecurePassword(12) };
       const header = { Authorization: 'Basic ' + btoa(`${user.name}:${user.password}`) };
 
       new HttpClient().withBasicAuth(user.name, user.password).get('https://api.example.local/test/');
@@ -204,7 +205,7 @@ describe('HTTP Client', () => {
     });
 
     it('Send a request with a Bearer token', () => {
-      const token = (Math.random() + 10).toString(36).substring(2);
+      const token = generateSecurePassword(10);
       const header = { Authorization: `Bearer ${token}` };
 
       new HttpClient().withToken(token).get('https://api.example.local/test/');
@@ -445,9 +446,7 @@ describe('HTTP Client', () => {
     it('Mocked response is returned after faking', async () => {
       const user = { first_name: 'Luis', last_name: 'Aveiro' };
 
-      const mockedResponseBody = [
-        { id: Math.round(Math.random() * 100), ...user, date_created: new Date().toString() },
-      ];
+      const mockedResponseBody = [{ id: generateRandomNumber(1, 100) }];
 
       const mockedResponse = new Response(JSON.stringify(mockedResponseBody), {
         status: HttpStatusCodes.HTTP_CREATED,
