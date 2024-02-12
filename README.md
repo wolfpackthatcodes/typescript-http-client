@@ -328,7 +328,24 @@ const response = new HttpClient()
 </details>
 
 <details>
-<summary><b>7. Testing</b></summary>
+<summary><b>7. Set request timeout</b></summary>
+
+The HTTP Clients offers a `timeout` method to specify the maximum number of milliseconds to wait for a response.
+
+The `timeout` method accepts the maximum number of milliseconds the request should wait for a response.
+
+```typescript
+import { HttpClient } from '@wolfpackthatcodes/http-client';
+
+const response = new HttpClient()
+  .timeout(1000)
+  .get('https://api.example.local/test/');
+```
+
+</details>
+
+<details>
+<summary><b>8. Testing</b></summary>
 
 The HTTP Client offers a `fake` method that allows you to instruct the HTTP Client to return mocked responses when requests are made. The `fake` method will prevent the HTTP Client to make a HTTP request.
 
