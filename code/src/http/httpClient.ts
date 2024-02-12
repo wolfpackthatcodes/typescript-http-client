@@ -476,6 +476,19 @@ export default class HttpClient {
   }
 
   /**
+   * Specify the timeout (in milliseconds) for the pending request.
+   *
+   * @param {number} milliseconds
+   *
+   * @returns {this}
+   */
+  public timeout(milliseconds: number): this {
+    this.withOption('signal', AbortSignal.timeout(milliseconds));
+
+    return this;
+  }
+
+  /**
    * Specify the basic authentication username and password for the request.
    *
    * @param {string} username
