@@ -3,7 +3,7 @@ import PendingRequestBody from './pendingRequest/pendingRequestBody';
 import { Options } from './types/options';
 import { HttpMethods } from './types/httpMethods';
 import { RequestAuthorization } from './types/requestAuthorization';
-import InvalidHeaderFormatException from './exceptions/invalidHeaderFormatException';
+import { InvalidHeaderFormatException } from './exceptions';
 import { FetchOptions } from './types/fetchOptions';
 import { RequestOptions } from './types/requestOptions';
 
