@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.7.0] - 2024-02-13
+### Added
+- Index file for TypeScript types
+
+### Fixed
+- Missing AbortSignal option to RequestOptions
+- Missing package export for RequestOptions type
+
+### Removed
+- `PendingRequestBody` instance within the HTTP Client.
+
 ## [v0.6.0] - 2024-02-13
 ### Added
 - `timeout` method.
