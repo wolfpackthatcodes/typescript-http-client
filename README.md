@@ -18,8 +18,15 @@
   <a href="#changelog">Changelog</a> •
   <a href="#contributing">Contributing</a> •
   <a href="#security-vulnerabilities">Security Vulnerabilities</a> •
-  <a href="#Sponsor">Sponsor</a> •
+  <a href="#sponsor">Sponsor</a> •
   <a href="#license">License</a>
+</p>
+
+---
+
+<p align="center">
+  <img src="https://sonarcloud.io/images/project_badges/sonarcloud-orange.svg" width="120px" alt="SonarCloud scan">
+  <img src="https://img.shields.io/npm/dt/%40wolfpackthatcodes%2Fhttp-client?style=for-the-badge" width="150px" alt="npm downloads">
 </p>
 
 ## About
