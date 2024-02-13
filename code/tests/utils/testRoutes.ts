@@ -1,7 +1,7 @@
 import { HttpStatusCodes } from '../enums/httpStatusCodes';
-import { delay, http, HttpResponse } from 'msw';
+import { delay, http, HttpHandler, HttpResponse } from 'msw';
 
-export const restHandlers = [
+export const restHandlers: HttpHandler[] = [
   http.all('https://api.example.local/test/', () => {
     return new HttpResponse(null, {
       status: HttpStatusCodes.HTTP_OK,
