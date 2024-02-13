@@ -7,13 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.7.1] - 2024-02-13
+### Fixed
+- Group parts of the regex together to make the intended operator precedence explicit.
+
 ## [v0.7.0] - 2024-02-13
 ### Added
-- Index file for TypeScript types
+- Index file for TypeScript types.
 
 ### Fixed
-- Missing AbortSignal option to RequestOptions
-- Missing package export for RequestOptions type
+- Missing AbortSignal option to RequestOptions.
+- Missing package export for RequestOptions type.
 
 ### Removed
 - `PendingRequestBody` instance within the HTTP Client.
