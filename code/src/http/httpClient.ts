@@ -1,11 +1,10 @@
 import MockedResponses from './responses/mockedResponses';
-import PendingRequestBody from './pendingRequest/pendingRequestBody';
-import { Options } from './types/options';
-import { HttpMethods } from './types/httpMethods';
-import { RequestAuthorization } from './types/requestAuthorization';
-import { InvalidHeaderFormatException } from './exceptions';
-import { FetchOptions } from './types/fetchOptions';
-import { RequestOptions } from './types/requestOptions';
+import { FetchOptions, HttpMethods, Options, RequestAuthorization, RequestBodyFormat, RequestOptions } from './types';
+import {
+  EmptyRequestBodyException,
+  InvalidHeaderFormatException,
+  InvalidRequestBodyFormatException,
+} from './exceptions';
 
 export default class HttpClient {
   /**
@@ -14,6 +13,20 @@ export default class HttpClient {
    * @var {string}
    */
   private baseUrl: string = '';
+
+  /**
+   * The request body data.
+   *
+   * @var {object | string | undefined}
+   */
+  private body?: object | string;
+
+  /**
+   * The request body format.
+   *
+   * @var {RequestBodyFormat}
+   */
+  private bodyFormat: RequestBodyFormat = 'String';
 
   /**
    * The mocked responses instance.
@@ -28,13 +41,6 @@ export default class HttpClient {
    * @var {number}
    */
   private requestAttempts: number = 0;
-
-  /**
-   * The request body instance.
-   *
-   * @var {PendingRequestBody}
-   */
-  private requestBody: PendingRequestBody;
 
   /**
    * The request options object.
@@ -86,7 +92,6 @@ export default class HttpClient {
    */
   constructor(baseUrl?: string, options?: object) {
     this.mockedResponses = new MockedResponses();
-    this.requestBody = new PendingRequestBody();
 
     this.setBaseUrl(baseUrl);
     this.setOptions(options);
@@ -118,7 +123,7 @@ export default class HttpClient {
    * @return {this}
    */
   public asJson(): this {
-    this.requestBody.asJson();
+    this.setBodyFormat('Json');
     this.contentType('application/json');
 
     return this;
@@ -130,7 +135,7 @@ export default class HttpClient {
    * @return {this}
    */
   public asForm(): this {
-    this.requestBody.asForm();
+    this.setBodyFormat('FormData');
     this.contentType('multipart/form-data');
 
     return this;
@@ -142,7 +147,7 @@ export default class HttpClient {
    * @return {this}
    */
   public asUrlEncoded(): this {
-    this.requestBody.asUrlEncoded();
+    this.setBodyFormat('URLSearchParams');
     this.contentType('application/x-www-form-urlencoded');
 
     return this;
@@ -171,8 +176,8 @@ export default class HttpClient {
    * @returns {FetchOptions}
    */
   private buildRequestOptions(method: HttpMethods): FetchOptions {
-    if (this.requestBody.hasBody()) {
-      this.requestOptions.body = this.requestBody.parseRequestBody();
+    if (this.hasBody()) {
+      this.requestOptions.body = this.parseRequestBody();
 
       if (!this.requestOptions.headers?.has('Content-Type')) {
         this.withHeader('Content-Type', 'text/plain');
@@ -274,6 +279,15 @@ export default class HttpClient {
   }
 
   /**
+   * Check if the body data has been set for the pending request.
+   *
+   * @returns {boolean}
+   */
+  private hasBody(): boolean {
+    return this.body !== undefined;
+  }
+
+  /**
    * Check if the headers have been set for the pending request.
    *
    * @returns {boolean}
@@ -309,6 +323,43 @@ export default class HttpClient {
     this.withUrl(url);
 
     return this.sendRequest('OPTIONS');
+  }
+
+  /**
+   * Process request body contents to desirable format.
+   *
+   * @throws {EmptyRequestBodyException | InvalidRequestBodyFormatException}
+   *
+   * @returns {string | FormData | URLSearchParams}
+   */
+  private parseRequestBody(): string | FormData | URLSearchParams {
+    if (this.body === undefined) {
+      throw new EmptyRequestBodyException('Request body has no data.');
+    }
+
+    if (this.bodyFormat === 'FormData') {
+      if (typeof this.body === 'string') {
+        throw new InvalidRequestBodyFormatException('Cannot parse a string as FormData.');
+      }
+
+      const formData = new FormData();
+
+      for (const [key, value] of Object.entries(this.body)) {
+        formData.append(key, value);
+      }
+
+      return formData;
+    }
+
+    if (this.bodyFormat === 'URLSearchParams') {
+      if (typeof this.body === 'string') {
+        throw new InvalidRequestBodyFormatException('Cannot parse a string as URLSearchParams.');
+      }
+
+      return new URLSearchParams({ ...this.body });
+    }
+
+    return typeof this.body === 'object' ? JSON.stringify(this.body) : this.body;
   }
 
   /**
@@ -461,6 +512,28 @@ export default class HttpClient {
   }
 
   /**
+   * Specify the body data of the request.
+   *
+   * @param {object | string} body
+   *
+   * @return {void}
+   */
+  private setBody(body: object | string): void {
+    this.body = body;
+  }
+
+  /**
+   * Specify the body format of the request.
+   *
+   * @param {RequestBodyFormat} format
+   *
+   * @return {void}
+   */
+  private setBodyFormat(format: RequestBodyFormat): void {
+    this.bodyFormat = format;
+  }
+
+  /**
    * Set the default options for the request.
    *
    * @param {object | undefined} options
@@ -508,7 +581,7 @@ export default class HttpClient {
    * @returns {void}
    */
   private withBody(body: object | string): void {
-    this.requestBody.setBody(body);
+    this.setBody(body);
   }
 
   /**
@@ -558,6 +631,8 @@ export default class HttpClient {
    *
    * @param {string} key
    * @param {RequestOptions} value
+   *
+   * @throws {InvalidHeaderFormatException}
    *
    * @returns {this}
    */
