@@ -1,4 +1,6 @@
 import HttpClient from '@/http/httpClient';
+import { RequestOptions } from '@/http/types';
+
 import {
   EmptyRequestBodyException,
   InvalidHeaderFormatException,
@@ -13,3 +15,5 @@ export {
   InvalidRequestBodyFormatException,
   MissingMockedResponseException,
 };
+
+export type { RequestOptions };
