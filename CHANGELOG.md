@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.6.0] - 2024-02-13
+### Added
+- `timeout` method.
+
+### Fixed
+- Replace this trivial promise with "Promise.resolve".
+
+### Removed
+- Useless constructors in custom exceptions.
+
 ## [v0.5.0] - 2023-12-30
 ### Added
 - `OPTIONS` request helper methods.
