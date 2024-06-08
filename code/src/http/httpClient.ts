@@ -1,5 +1,6 @@
 import MockedResponses from './responses/mockedResponses';
 import type {
+  AllowedTypes,
   FetchOptions,
   HttpMethods,
   Options,
@@ -87,9 +88,9 @@ export default class HttpClient {
   /**
    * The query parameters for the request URL.
    *
-   * @var {Record<string, boolean | number | string> | undefined}
+   * @var {Record<string, AllowedTypes> | undefined}
    */
-  private urlQueryParameters?: Record<string, boolean | number | string>;
+  private urlQueryParameters?: Record<string, AllowedTypes>;
 
   /**
    * Create a new Http Client instance.
@@ -284,11 +285,11 @@ export default class HttpClient {
    * Process a GET request to the given URL.
    *
    * @param {string} url
-   * @param {Record<string, boolean | number | string> | undefined} query
+   * @param {Record<string, AllowedTypes> | undefined} query
    *
    * @returns {Promise<Response>}
    */
-  public get(url: string, query?: Record<string, boolean | number | string>): Promise<Response> {
+  public get(url: string, query?: Record<string, AllowedTypes>): Promise<Response> {
     this.withUrl(url);
 
     if (query) this.withQueryParameters(query);
@@ -318,11 +319,11 @@ export default class HttpClient {
    * Process a HEAD request to the given URL.
    *
    * @param {string} url
-   * @param {Record<string, boolean | number | string> | undefined} query
+   * @param {Record<string, AllowedTypes> | undefined} query
    *
    * @returns {Promise<Response>}
    */
-  public head(url: string, query?: Record<string, boolean | number | string>): Promise<Response> {
+  public head(url: string, query?: Record<string, AllowedTypes>): Promise<Response> {
     this.withUrl(url);
 
     if (query) this.withQueryParameters(query);
@@ -686,11 +687,11 @@ export default class HttpClient {
   /**
    * Set the given query parameters in the request URL.
    *
-   * @param {Record<string, boolean | number | string>} query
+   * @param {Record<string, AllowedTypes>} query
    *
    * @returns {this}
    */
-  public withQueryParameters(query: Record<string, boolean | number | string>): this {
+  public withQueryParameters(query: Record<string, AllowedTypes>): this {
     this.urlQueryParameters = { ...this.urlQueryParameters, ...query };
 
     return this;
