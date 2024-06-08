@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.7.2] - 2024-06-08
+### Changed
+- Types to be more specific.
+
+### Removed
+- Version top-level element in the Docker Compose file.
+
 ## [v0.7.1] - 2024-02-13
 ### Fixed
 - Group parts of the regex together to make the intended operator precedence explicit.
