@@ -1,5 +1,12 @@
 import MockedResponses from './responses/mockedResponses';
-import { FetchOptions, HttpMethods, Options, RequestAuthorization, RequestBodyFormat, RequestOptions } from './types';
+import type {
+  FetchOptions,
+  HttpMethods,
+  Options,
+  RequestAuthorization,
+  RequestBodyFormat,
+  RequestOptions,
+} from './types';
 import {
   EmptyRequestBodyException,
   InvalidHeaderFormatException,
@@ -80,9 +87,9 @@ export default class HttpClient {
   /**
    * The query parameters for the request URL.
    *
-   * @var {Record<string, string> | undefined}
+   * @var {Record<string, boolean | number | string> | undefined}
    */
-  private urlQueryParameters?: Record<string, string>;
+  private urlQueryParameters?: Record<string, boolean | number | string>;
 
   /**
    * Create a new Http Client instance.
@@ -213,7 +220,11 @@ export default class HttpClient {
     }
 
     if (this.urlQueryParameters !== undefined) {
-      url += '?' + new URLSearchParams(this.urlQueryParameters);
+      const urlSearchParams = new URLSearchParams(
+        Object.entries(this.urlQueryParameters).map(([key, value]) => [key, String(value)]),
+      );
+
+      url += '?' + urlSearchParams;
     }
 
     return new URL(url);
@@ -259,11 +270,11 @@ export default class HttpClient {
   /**
    * Register a mocked response that will intercept requests and be able to return mocked responses.
    *
-   * @param {object} mockedResponses
+   * @param {Object.<string, Response>} mockedResponses
    *
    * @returns {this}
    */
-  public fake(mockedResponses: object): this {
+  public fake(mockedResponses: { [key: string]: Response }): this {
     this.mockedResponses.set(mockedResponses);
 
     return this;
@@ -273,11 +284,11 @@ export default class HttpClient {
    * Process a GET request to the given URL.
    *
    * @param {string} url
-   * @param {object | undefined} query
+   * @param {Record<string, boolean | number | string> | undefined} query
    *
    * @returns {Promise<Response>}
    */
-  public get(url: string, query?: object): Promise<Response> {
+  public get(url: string, query?: Record<string, boolean | number | string>): Promise<Response> {
     this.withUrl(url);
 
     if (query) this.withQueryParameters(query);
@@ -307,11 +318,11 @@ export default class HttpClient {
    * Process a HEAD request to the given URL.
    *
    * @param {string} url
-   * @param {object | undefined} query
+   * @param {Record<string, boolean | number | string> | undefined} query
    *
    * @returns {Promise<Response>}
    */
-  public head(url: string, query?: object): Promise<Response> {
+  public head(url: string, query?: Record<string, boolean | number | string>): Promise<Response> {
     this.withUrl(url);
 
     if (query) this.withQueryParameters(query);
@@ -660,11 +671,11 @@ export default class HttpClient {
   /**
    * Add the given options to the request.
    *
-   * @param {object} options
+   * @param {Object.<string, RequestOptions>} options
    *
    * @returns {this}
    */
-  public withOptions(options: object): this {
+  public withOptions(options: { [key: string]: RequestOptions }): this {
     for (const [key, value] of Object.entries(options)) {
       this.withOption(key, value);
     }
@@ -675,11 +686,11 @@ export default class HttpClient {
   /**
    * Set the given query parameters in the request URL.
    *
-   * @param {object} query
+   * @param {Record<string, boolean | number | string>} query
    *
    * @returns {this}
    */
-  public withQueryParameters(query: object): this {
+  public withQueryParameters(query: Record<string, boolean | number | string>): this {
     this.urlQueryParameters = { ...this.urlQueryParameters, ...query };
 
     return this;
