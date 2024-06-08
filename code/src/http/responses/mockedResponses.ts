@@ -5,9 +5,9 @@ export default class MockedResponses {
   /**
    * The mocked responses object.
    *
-   * @var {object}
+   * @var {Object.<string, Response>}
    */
-  protected mockedResponses: object = {};
+  protected mockedResponses: { [key: string]: Response } = {};
 
   /**
    * Indicates if the client is to return mocked responses.
@@ -22,11 +22,11 @@ export default class MockedResponses {
    * Register a mocked response that will intercept requests
    * and be able to return mocked responses.
    *
-   * @param {object} mockedResponses
+   * @param {Object.<string, Response>} mockedResponses
    *
    * @returns {this}
    */
-  public set(mockedResponses: object): this {
+  public set(mockedResponses: { [key: string]: Response }): this {
     this.mockedResponses = mockedResponses;
 
     return this;
