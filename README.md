@@ -41,7 +41,7 @@ Until HTTP Client reaches a 1.0.0 release, breaking changes will be released wit
 
 You will need to make sure your system meets the following prerequisites:
 
-- Node.js >= 18.0.0
+- Node.js >= 20.0.0
 
 #### Package installation
 
