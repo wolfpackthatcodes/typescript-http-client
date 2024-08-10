@@ -332,6 +332,21 @@ export default class HttpClient {
   }
 
   /**
+   * Determine if response is successful.
+   *
+   * @param {Response} response
+   *
+   * @returns {boolean}
+   */
+  private isSuccessfulResponse(response?: Response): boolean {
+    if (response === undefined) {
+      return false;
+    }
+
+    return response.ok;
+  }
+
+  /**
    * Process a OPTIONS request to the given URL.
    *
    * @param {string} url
@@ -490,7 +505,7 @@ export default class HttpClient {
 
     try {
       const response: Response = await this.attemptRequest(method);
-      const successfulResponse: boolean = response !== undefined && response.ok;
+      const successfulResponse: boolean = this.isSuccessfulResponse(response);
       const shouldRetry = this.retryCallback ? this.retryCallback(response, this) : true;
 
       if (!successfulResponse && shouldRetry === true && this.requestAttempts <= this.retries) {
