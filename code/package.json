@@ -62,7 +62,7 @@
     "eslint-import-resolver-typescript": "^3.6.3",
     "eslint-plugin-import": "^2.30.0",
     "eslint-plugin-prettier": "^5.2.1",
-    "msw": "^2.4.1",
+    "msw": "^2.4.7",
     "prettier": "^3.3.3",
     "typescript": "^5.5.4",
     "vite": "^5.4.3",
