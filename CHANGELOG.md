@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.8.0] - 2024-10-28
+### Changed
+- Upgrade dev dependencies.
+
 ## [v0.7.4] - 2024-08-10
 ### Fixed
 - typescript:S6582
