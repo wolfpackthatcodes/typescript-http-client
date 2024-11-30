@@ -42,7 +42,7 @@ export default class HttpClient {
    *
    * @var {MockedResponse}
    */
-  private mockedResponses: MockedResponses;
+  private readonly mockedResponses: MockedResponses;
 
   /**
    * The Multipart Data Serializer instance.
