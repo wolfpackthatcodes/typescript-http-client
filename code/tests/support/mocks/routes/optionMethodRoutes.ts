@@ -1,8 +1,8 @@
-import { HttpStatusCodes } from 'tests/support/enums/httpStatusCodes';
-import { http, HttpHandler, HttpResponse } from 'msw';
+import { http, HttpHandler } from 'msw';
+import { mockedResponseStatusOk } from '../responses/mockedResponses';
 
 export const optionMethodRoutes: HttpHandler[] = [
   http.options('https://api.example.local/status', () => {
-    return new HttpResponse(null, { status: HttpStatusCodes.HTTP_OK });
+    return mockedResponseStatusOk();
   }),
 ];

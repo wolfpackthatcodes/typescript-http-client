@@ -1,9 +1,9 @@
-import { HttpStatusCodes } from 'tests/support/enums/httpStatusCodes';
-import { http, HttpHandler, HttpResponse } from 'msw';
+import { http, HttpHandler } from 'msw';
+import { mockedResponseStatusCreated, mockedResponseStatusOk } from '../responses/mockedResponses';
 
 export const postMethodRoutes: HttpHandler[] = [
   http.post('https://api.example.local/notifications/text-message', () => {
-    return new HttpResponse('OK', { status: HttpStatusCodes.HTTP_OK });
+    return mockedResponseStatusOk('OK');
   }),
 
   http.post('https://api.example.local/users', async ({ request }) => {
@@ -25,9 +25,6 @@ export const postMethodRoutes: HttpHandler[] = [
       response = { ...response, ...formData };
     }
 
-    return new HttpResponse(JSON.stringify(response), {
-      status: HttpStatusCodes.HTTP_CREATED,
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-    });
+    return mockedResponseStatusCreated(JSON.stringify(response));
   }),
 ];
