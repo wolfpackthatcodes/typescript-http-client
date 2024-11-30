@@ -227,7 +227,7 @@ describe('HTTP Client', () => {
   });
 
   describe('Test request timeout', () => {
-    it('Should abort the request when signal is timed out', () => {
+    it('Should abort the request when signal is timed out', async () => {
       const url = 'https://api.example.local/timeout';
       const request = new HttpClient().timeout(1).get(url);
 
@@ -236,7 +236,7 @@ describe('HTTP Client', () => {
         signal: expect.any(AbortSignal),
       });
 
-      expect(request).rejects.toThrowError('The operation was aborted due to timeout');
+      await expect(request).rejects.toThrowError('The operation was aborted due to timeout');
     });
   });
 
@@ -504,20 +504,20 @@ describe('HTTP Client', () => {
   });
 
   describe('Test Exceptions', () => {
-    it('Catch a request with invalid URL encoded data', () => {
-      const httpClient = new HttpClient()
+    it('Catch a request with invalid URL encoded data', async () => {
+      const response = new HttpClient()
         .asUrlEncoded()
         .post('https://api.example.local/notifications/text-message', 'Example text');
 
-      expect(httpClient).rejects.toThrowError('Cannot parse a string as URLSearchParams.');
+      await expect(response).rejects.toThrowError('Cannot parse a string as URLSearchParams.');
     });
 
-    it('Catch a request with invalid Multipart Form-data', () => {
-      const httpClient = new HttpClient()
+    it('Catch a request with invalid Multipart Form-data', async () => {
+      const response = new HttpClient()
         .asForm()
         .post('https://api.example.local/notifications/text-message', 'Example text');
 
-      expect(httpClient).rejects.toThrowError('Cannot parse a string as FormData.');
+      await expect(response).rejects.toThrowError('Cannot parse a string as FormData.');
     });
 
     it('Catch a request with invalid header format', () => {
@@ -623,14 +623,14 @@ describe('HTTP Client', () => {
       expect(secondResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
     });
 
-    it('Catch a request with missing mocked response', () => {
-      const httpClient = new HttpClient()
+    it('Catch a request with missing mocked response', async () => {
+      const response = new HttpClient()
         .fake({ 'users/1/posts': new Response(JSON.stringify({}), { status: HttpStatusCodes.HTTP_OK }) })
         .acceptJson()
         .get('https://api.example.local/users/1');
 
-      expect(httpClient).rejects.toThrowError('Failed to fetch mocked response');
-      expect(httpClient).rejects.toThrowError(TypeError);
+      await expect(response).rejects.toThrowError('Failed to fetch mocked response');
+      await expect(response).rejects.toThrowError(TypeError);
     });
 
     it('Mocked failed response is returned after faking', async () => {
