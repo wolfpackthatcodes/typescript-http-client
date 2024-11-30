@@ -49,7 +49,7 @@ export default class HttpClient {
    *
    * @var {MultipartDataSerializer}
    */
-  private multipartDataSerializer: MultipartDataSerializer;
+  private readonly multipartDataSerializer: MultipartDataSerializer;
 
   /**
    * Number of attempts for the request.

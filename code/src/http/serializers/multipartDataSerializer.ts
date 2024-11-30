@@ -4,7 +4,7 @@ export default class MultipartDataSerializer {
    *
    * @type {string}
    */
-  private boundary: string;
+  private readonly boundary: string;
 
   /**
    * Create a new Multipart Data Serializer instance.
@@ -46,7 +46,7 @@ export default class MultipartDataSerializer {
       } else {
         lines.push(`Content-Disposition: form-data; name="${key}"`);
         lines.push('');
-        lines.push(value as string);
+        lines.push(value);
       }
     });
 
