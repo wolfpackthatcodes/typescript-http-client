@@ -19,7 +19,7 @@ export const getMethodRoutes: HttpHandler[] = [
   http.get('https://api.example.local/authorize', ({ request }) => {
     const authHeader = request.headers.get('Authorization');
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return mockedResponseStatusUnauthorized(JSON.stringify({ error: 'Unauthorized' }));
     }
 
@@ -37,7 +37,7 @@ export const getMethodRoutes: HttpHandler[] = [
   http.get('https://api.example.local/profile', ({ request }) => {
     const authHeader = request.headers.get('Authorization');
 
-    if (!authHeader || !authHeader.startsWith('Basic ')) {
+    if (!authHeader?.startsWith('Basic ')) {
       return mockedResponseStatusUnauthorized(JSON.stringify({ error: 'Unauthorized' }));
     }
 
