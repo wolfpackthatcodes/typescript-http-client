@@ -412,11 +412,11 @@ export default class HttpClient {
    * Process a PATCH request to the given URL.
    *
    * @param {string} url
-   * @param {FormData | object | string} data
+   * @param {object | string} data
    *
    * @returns {Promise<Response>}
    */
-  public patch(url: string, data: FormData | object | string): Promise<Response> {
+  public patch(url: string, data: object | string): Promise<Response> {
     this.withUrl(url);
     this.withBody(data);
 
@@ -427,11 +427,11 @@ export default class HttpClient {
    * Process a POST request to the given URL.
    *
    * @param {string} url
-   * @param {FormData | object | string} data
+   * @param {object | string} data
    *
    * @returns {Promise<Response>}
    */
-  public post(url: string, data: FormData | object | string): Promise<Response> {
+  public post(url: string, data: object | string): Promise<Response> {
     this.withUrl(url);
     this.withBody(data);
 
@@ -442,11 +442,11 @@ export default class HttpClient {
    * Process a PUT request to the given URL.
    *
    * @param {string} url
-   * @param {FormData | object | string} data
+   * @param {object | string} data
    *
    * @returns {Promise<Response>}
    */
-  public put(url: string, data: FormData | object | string): Promise<Response> {
+  public put(url: string, data: object | string): Promise<Response> {
     this.withUrl(url);
     this.withBody(data);
 
@@ -622,11 +622,11 @@ export default class HttpClient {
   /**
    * Attach body data to the request.
    *
-   * @param {FormData | object | string} body
+   * @param {object | string} body
    *
    * @returns {void}
    */
-  private withBody(body: FormData | object | string): void {
+  private withBody(body: object | string): void {
     this.setBody(body);
   }
 
