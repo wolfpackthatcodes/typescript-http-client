@@ -1,7 +1,7 @@
 {
   "name": "@wolfpackthatcodes/http-client",
   "description": "An expressive, minimal wrapper around the Fetch() API allowing you to quickly make HTTP requests.",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "license": "MIT",
   "homepage": "https://github.com/wolfpackthatcodes/typescript-http-client",
   "repository": {
@@ -53,7 +53,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^9.2.0",
-    "@types/node": "^22.9.0",
+    "@types/node": "^22.9.3",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^6.21.0",
     "@vitest/coverage-v8": "^2.0.5",
@@ -63,10 +63,10 @@
     "eslint-import-resolver-typescript": "^3.6.3",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.2.1",
-    "msw": "^2.6.4",
+    "msw": "^2.6.6",
     "prettier": "^3.3.3",
-    "typescript": "^5.6.3",
-    "vite": "^5.4.10",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.11",
     "vite-plugin-dts": "^4.3.0",
     "vitest": "^2.0.5"
   },
