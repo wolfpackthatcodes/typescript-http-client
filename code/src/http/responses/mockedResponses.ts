@@ -1,4 +1,4 @@
-import Str from '@/support/str';
+import Str from '@/utils/str';
 import { MissingMockedResponseException } from '../exceptions';
 
 export default class MockedResponses {
@@ -44,7 +44,9 @@ export default class MockedResponses {
   public getMockedResponse(requestUrl: string): Promise<Response> {
     type ObjectKey = keyof typeof this.mockedResponses;
 
-    const mockedUrl = Object.keys(this.mockedResponses).find((url) => {
+    const mockedUrl = Object.keys(this.mockedResponses).find((url: string) => {
+      url = url.replace(/\/\*$/, '*');
+
       return url === requestUrl || url === '*' ? true : Str.is(Str.start(url, '*'), requestUrl);
     }) as ObjectKey;
 

@@ -13,6 +13,7 @@ import {
   InvalidHeaderFormatException,
   InvalidRequestBodyFormatException,
 } from './exceptions';
+import { MultipartDataSerializer } from './serializers';
 
 export default class HttpClient {
   /**
@@ -25,7 +26,7 @@ export default class HttpClient {
   /**
    * The request body data.
    *
-   * @var {object | string | undefined}
+   * @var { object | string | undefined}
    */
   private body?: object | string;
 
@@ -41,7 +42,14 @@ export default class HttpClient {
    *
    * @var {MockedResponse}
    */
-  private mockedResponses: MockedResponses;
+  private readonly mockedResponses: MockedResponses;
+
+  /**
+   * The Multipart Data Serializer instance.
+   *
+   * @var {MultipartDataSerializer}
+   */
+  private readonly multipartDataSerializer: MultipartDataSerializer;
 
   /**
    * Number of attempts for the request.
@@ -65,18 +73,18 @@ export default class HttpClient {
   private retries: number = 0;
 
   /**
-   * The number of milliseconds to wait between retries.
-   *
-   * @var {number}
-   */
-  private retryDelay: number = 0;
-
-  /**
    * The callback that will determine if the request should be retried.
    *
    * @var {function}
    */
   private retryCallback?: (response: Response | undefined, request: this, error?: unknown) => boolean | null;
+
+  /**
+   * The number of milliseconds to wait between retries.
+   *
+   * @var {number}
+   */
+  private retryDelay: number = 0;
 
   /**
    * The URL for the request.
@@ -100,6 +108,7 @@ export default class HttpClient {
    */
   constructor(baseUrl?: string, options?: object) {
     this.mockedResponses = new MockedResponses();
+    this.multipartDataSerializer = new MultipartDataSerializer();
 
     this.setBaseUrl(baseUrl);
     this.setOptions(options);
@@ -144,7 +153,7 @@ export default class HttpClient {
    */
   public asForm(): this {
     this.setBodyFormat('FormData');
-    this.contentType('multipart/form-data');
+    this.contentType(`multipart/form-data; boundary=${this.multipartDataSerializer.getBoundary()}`);
 
     return this;
   }
@@ -210,14 +219,11 @@ export default class HttpClient {
     let url = this.url
       .split('://')
       .map((urlSlug) => urlSlug.replace(/\/{2,}/g, '/'))
-      .join('://');
-
-    if (!url.endsWith('/')) {
-      url += '/';
-    }
+      .join('://')
+      .replace(/\/$/, '');
 
     if (!(url.startsWith('http://') || url.startsWith('https://'))) {
-      url = this.baseUrl.replace(/\/$/, '') + url;
+      url = this.baseUrl.replace(/\/$/, '') + '/' + url.replace(/^\//, '');
     }
 
     if (this.urlQueryParameters !== undefined) {
@@ -376,13 +382,19 @@ export default class HttpClient {
         throw new InvalidRequestBodyFormatException('Cannot parse a string as FormData.');
       }
 
-      const formData = new FormData();
+      let formData: FormData;
 
-      for (const [key, value] of Object.entries(this.body)) {
-        formData.append(key, value);
+      if (this.body instanceof FormData) {
+        formData = this.body;
+      } else {
+        formData = new FormData();
+
+        for (const [key, value] of Object.entries(this.body)) {
+          formData.append(key, value);
+        }
       }
 
-      return formData;
+      return this.multipartDataSerializer.generateMultipartPayload(formData);
     }
 
     if (this.bodyFormat === 'URLSearchParams') {
@@ -548,11 +560,11 @@ export default class HttpClient {
   /**
    * Specify the body data of the request.
    *
-   * @param {object | string} body
+   * @param {FormData | object | string} body
    *
    * @return {void}
    */
-  private setBody(body: object | string): void {
+  private setBody(body: FormData | object | string): void {
     this.body = body;
   }
 

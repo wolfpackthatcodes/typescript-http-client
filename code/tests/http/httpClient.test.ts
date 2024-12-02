@@ -1,345 +1,473 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, MockInstance, vi } from 'vitest';
 import HttpClient from '@/http/httpClient';
-import { HttpStatusCodes } from '../enums/httpStatusCodes';
-import { generateRandomNumber, generateSecurePassword } from '../utils/generators';
 import { MissingMockedResponseException } from '@/http/exceptions';
-import { setupServer } from 'msw/node';
-import { restHandlers } from '../utils/testRoutes';
+import { HttpStatusCodes } from 'tests/support/enums/httpStatusCodes';
+import { generateRandomNumber, generateRandomUser, generateSecurePassword } from 'tests/support/helpers/generators';
+import { server } from 'tests/support/mocks/mockServer';
 
 describe('HTTP Client', () => {
-  let fetchSpy: unknown;
-  const server = setupServer(...restHandlers);
+  let fetchSpy: MockInstance;
 
-  beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+  beforeAll(() => {
+    server.listen({ onUnhandledRequest: 'error' });
+  });
+
   beforeEach(() => {
     fetchSpy = vi.spyOn(global, 'fetch');
   });
-  afterAll(() => server.close());
-  afterEach(() => server.resetHandlers());
+
+  afterAll(() => {
+    server.close();
+  });
+
+  afterEach(() => {
+    server.resetHandlers();
+  });
+
+  describe('Test URL structure', () => {
+    it.each([
+      ['https://api.example.local', 'status'],
+      ['https://api.example.local', '/status'],
+      ['https://api.example.local/', 'status'],
+      ['https://api.example.local/', '/status'],
+      [null, 'https://api.example.local/status'],
+      [null, 'https://api.example.local/status/'],
+      [null, 'https://api.example.local//status/'],
+      [null, 'https://api.example.local//status//'],
+    ])('Should be able to send a request using a base URL', (baseUrl: string | null, endpoint: string) => {
+      const client = baseUrl ? new HttpClient(baseUrl) : new HttpClient();
+      client.head(endpoint);
+
+      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/status', { method: 'HEAD' });
+    });
+  });
 
   describe('Test HEAD requests', () => {
     it('Should be able to send a HEAD request', async () => {
-      const response = await new HttpClient().head('https://api.example.local/test/');
+      const url: string = 'https://api.example.local/status';
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/', { method: 'HEAD' });
+      const response = await new HttpClient().head(url);
+
+      expect(fetchSpy).toHaveBeenCalledWith(url, { method: 'HEAD' });
+
       expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
       expect(response.headers).toStrictEqual(new Headers({ 'Content-Type': 'application/json' }));
+      expect(await response.json()).toHaveProperty('status', 'OK');
     });
 
-    it('Should be able to send a HEAD request with query parameters', () => {
-      new HttpClient().head('https://api.example.local/test/', { q: 1 });
+    it('Should be able to send a HEAD request with query parameters', async () => {
+      const url = 'https://api.example.local/status';
+      const timestamp = Date.now();
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/?q=1', { method: 'HEAD' });
+      const response = await new HttpClient().head(url, { timestamp: timestamp });
+
+      expect(fetchSpy).toHaveBeenCalledWith(`${url}?timestamp=${timestamp}`, { method: 'HEAD' });
+
+      expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect(await response.json()).toStrictEqual({ status: 'OK', timestamp: timestamp.toString() });
     });
   });
 
   describe('Test OPTIONS requests', () => {
     it('Should be able to send an OPTIONS request', async () => {
-      await new HttpClient().options('https://api.example.local/test/');
+      const url = 'https://api.example.local/status';
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/', { method: 'OPTIONS' });
+      const response = await new HttpClient().options(url);
+
+      expect(fetchSpy).toHaveBeenCalledWith(url, { method: 'OPTIONS' });
+      expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
     });
   });
 
   describe('Test GET requests', () => {
-    it('Should be able to send a GET request using a base URL', async () => {
-      const response = await new HttpClient('https://api.example.local/').get('/test/1');
+    it('Should be able to send a GET request', async () => {
+      const url = 'https://api.example.local/books';
+      const response = await new HttpClient().get(url);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/1/', { method: 'GET' });
+      expect(fetchSpy).toHaveBeenCalledWith(url, { method: 'GET' });
+
       expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
-      expect(await response.json()).toStrictEqual({ title: 'Unit test', done: true });
+      expect((await response.json()).length).toEqual(10);
     });
 
-    it('Should be able to send a GET request with query parameters', () => {
-      new HttpClient().get('https://api.example.local/test/', { q: 'abc' });
+    it('Should be able to send a GET request with query parameters', async () => {
+      const url = 'https://api.example.local/books';
+      const limit = 5;
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/?q=abc', { method: 'GET' });
+      const response = await new HttpClient().get(url, { limit: limit });
 
-      new HttpClient().withQueryParameters({ q: 123 }).get('https://api.example.local/test/');
+      expect(fetchSpy).toHaveBeenCalledWith(`${url}?limit=${limit}`, { method: 'GET' });
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/?q=123', { method: 'GET' });
+      expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect((await response.json()).length).toEqual(5);
     });
   });
 
   describe('Test POST request', () => {
-    it('Should be able to send a POST request with raw data', () => {
-      const bodyText = 'This is a text body request.';
+    it('Should be able to send a POST request with raw data', async () => {
+      const url = 'https://api.example.local/notifications/text-message';
+      const bodyText = 'This is a text message.';
 
-      new HttpClient().post('https://api.example.local/test', bodyText);
+      const response = await new HttpClient().post(url, bodyText);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/', {
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
         method: 'POST',
         body: bodyText,
         headers: new Headers({
           'Content-Type': 'text/plain',
         }),
       });
+
+      expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect(await response.text()).toEqual('OK');
     });
 
-    it('Should be able to send a POST request with JSON data', () => {
-      const user = { first_name: 'Luis', last_name: 'Aveiro' };
+    it('Should be able to send a POST request with JSON data', async () => {
+      const url = 'https://api.example.local/users';
+      const user = generateRandomUser();
 
-      new HttpClient().asJson().post('https://api.example.local/users/', user);
+      const response = await new HttpClient().asJson().post(url, user);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/users/', {
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
         method: 'POST',
         body: JSON.stringify(user),
         headers: new Headers({
           'Content-Type': 'application/json',
         }),
       });
+
+      expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_CREATED);
+      expect(await response.json()).toStrictEqual({ id: 1, ...user });
     });
 
-    it('Should be able to send a POST request with Multipart Form-data', () => {
-      const user = { first_name: 'Luis', last_name: 'Aveiro' };
+    it('Should be able to send a POST request with Multipart Form-data', async () => {
+      const user = generateRandomUser();
       const formData = new FormData();
 
       for (const [key, value] of Object.entries(user)) {
         formData.append(key, value);
       }
 
-      new HttpClient().asForm().post('https://api.example.local/users/', user);
+      const firstResponse = await new HttpClient().asForm().post('https://api.example.local/users/', user);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/users/', {
-        method: 'POST',
-        body: formData,
-        headers: new Headers({
-          'Content-Type': 'multipart/form-data',
-        }),
-      });
+      expect(firstResponse.status).toStrictEqual(HttpStatusCodes.HTTP_CREATED);
+      expect(await firstResponse.json()).toStrictEqual({ id: 1, ...user });
+
+      const secondResponse = await new HttpClient().asForm().post('https://api.example.local/users/', formData);
+
+      expect(secondResponse.status).toStrictEqual(HttpStatusCodes.HTTP_CREATED);
+      expect(await secondResponse.json()).toStrictEqual({ id: 1, ...user });
     });
 
-    it('Should be able to send a POST request with URL encoded data', () => {
-      const user = { first_name: 'Luis', last_name: 'Aveiro' };
+    it('Should be able to send a POST request with URL encoded data', async () => {
+      const url = 'https://api.example.local/users';
+      const user = generateRandomUser();
       const urlencoded = new URLSearchParams(user);
 
-      new HttpClient().asUrlEncoded().post('https://api.example.local/users/', user);
+      const response = await new HttpClient().asUrlEncoded().post(url, user);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/users/', {
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
         method: 'POST',
         body: urlencoded,
         headers: new Headers({ 'Content-Type': 'application/x-www-form-urlencoded' }),
       });
+
+      expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_CREATED);
+      expect(await response.json()).toStrictEqual({ id: 1, ...user });
     });
   });
 
   describe('Test PATCH request', () => {
-    it('Should be able to send a PATCH request with JSON data', () => {
-      const user = { first_name: 'Luis', last_name: 'Aveiro' };
+    it('Should be able to send a PATCH request with JSON data', async () => {
+      const url = 'https://api.example.local/users/1';
+      const user = generateRandomUser();
 
-      new HttpClient().asJson().patch('https://api.example.local/users/1', user);
+      const response = await new HttpClient().asJson().patch(url, user);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/users/1/', {
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
         method: 'PATCH',
         body: JSON.stringify(user),
         headers: new Headers({
           'Content-Type': 'application/json',
         }),
       });
+
+      expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_ACCEPTED);
+      expect(await response.json()).toStrictEqual({ id: 1, ...user });
     });
   });
 
   describe('Test PUT request', () => {
-    it('Should be able to send a PUT request with JSON data', () => {
-      const user = { first_name: 'Luis', last_name: 'Aveiro' };
+    it('Should be able to send a PUT request with JSON data', async () => {
+      const url = 'https://api.example.local/users/1';
+      const user = generateRandomUser();
 
-      new HttpClient().asJson().put('https://api.example.local/users/1', user);
+      const response = await new HttpClient().asJson().put(url, user);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/users/1/', {
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
         method: 'PUT',
         body: JSON.stringify(user),
         headers: new Headers({
           'Content-Type': 'application/json',
         }),
       });
+
+      expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_ACCEPTED);
+      expect(await response.json()).toStrictEqual({ id: 1, ...user });
     });
   });
 
   describe('Test DELETE request', () => {
     it('Should be able to send a DELETE request', () => {
-      new HttpClient().delete('https://api.example.local/users/1');
+      const url = 'https://api.example.local/users/1';
+      new HttpClient().delete(url);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/users/1/', { method: 'DELETE' });
+      expect(fetchSpy).toHaveBeenCalledWith(url, { method: 'DELETE' });
     });
   });
 
   describe('Test request timeout', () => {
-    it('Should abort the request when signal is timed out', () => {
-      const request = new HttpClient().timeout(1).get('https://api.example.local/timeout');
+    it('Should abort the request when signal is timed out', async () => {
+      const url = 'https://api.example.local/timeout';
+      const request = new HttpClient().timeout(1).get(url);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/timeout/', {
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
         method: 'GET',
         signal: expect.any(AbortSignal),
       });
-      expect(request).rejects.toThrowError('The operation was aborted due to timeout');
+
+      await expect(request).rejects.toThrowError('The operation was aborted due to timeout');
     });
   });
 
   describe('Test Authenticated requests', () => {
-    it('Should be able to send a request with a Basic Authentication', () => {
+    it('Should be able to send a request with a Basic Authentication', async () => {
+      const url = 'https://api.example.local/profile';
       const user = { name: 'luis.aveiro', password: generateSecurePassword(12) };
       const header = { Authorization: 'Basic ' + btoa(`${user.name}:${user.password}`) };
 
-      new HttpClient().withBasicAuth(user.name, user.password).get('https://api.example.local/test/');
+      const firstResponse = await new HttpClient().withBasicAuth(user.name, user.password).get(url);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/', {
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
         method: 'GET',
         headers: new Headers(header),
       });
 
-      new HttpClient().withOption('headers', header).get('https://api.example.local/test/');
+      expect(firstResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect(await firstResponse.json()).toStrictEqual({ message: `Hello, ${user.name}` });
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/', {
+      const secondResponse = await new HttpClient().withOption('headers', header).get(url);
+
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
         method: 'GET',
         headers: new Headers(header),
       });
+
+      expect(secondResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect(await secondResponse.json()).toStrictEqual({ message: `Hello, ${user.name}` });
     });
 
-    it('Should be able to send a request with a Bearer token', () => {
+    it('Should be able to send a request with a Bearer token', async () => {
+      const url = 'https://api.example.local/authorize';
       const token = generateSecurePassword(10);
       const header = { Authorization: `Bearer ${token}` };
 
-      new HttpClient().withToken(token).get('https://api.example.local/test/');
+      const firstResponse = await new HttpClient().withToken(token).get(url);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/', {
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
         method: 'GET',
         headers: new Headers(header),
       });
 
-      new HttpClient().withOption('headers', header).get('https://api.example.local/test/');
+      expect(firstResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect(firstResponse.headers).toStrictEqual(new Headers({ 'Content-Type': 'application/json' }));
+      expect(await firstResponse.json()).toStrictEqual({ status: 'OK' });
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/', {
+      const secondResponse = await new HttpClient().withOption('headers', header).get(url);
+
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
         method: 'GET',
         headers: new Headers(header),
       });
+
+      expect(secondResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect(secondResponse.headers).toStrictEqual(new Headers({ 'Content-Type': 'application/json' }));
+      expect(await secondResponse.json()).toStrictEqual({ status: 'OK' });
     });
 
-    it('Should be able to send a request with Credentials', () => {
-      new HttpClient().withCredentials().get('https://api.example.local/test/');
+    it('Should be able to send a request with Credentials', async () => {
+      const url = 'https://api.example.local/auth/protected-resource';
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/', {
+      const response = await new HttpClient().withCredentials().get(url);
+
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
         method: 'GET',
         credentials: 'same-origin',
       });
+
+      expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect(response.headers).toStrictEqual(new Headers({ 'Content-Type': 'application/json' }));
+      expect(await response.json()).toStrictEqual({ status: 'OK' });
     });
   });
 
   describe('Test requests with Headers', () => {
-    it('Should be able to send a request with a header', () => {
+    it('Should be able to send a request with a header', async () => {
+      const baseUrl = 'https://api.example.local';
+      const endpoint = '/validate/headers/accept-encoding';
       const headers = { 'Accept-Encoding': 'gzip, deflate, br' };
 
-      new HttpClient('https://api.example.local/', { headers: new Headers(headers) }).head('/test/');
+      const firstResponse = await new HttpClient(baseUrl, { headers: new Headers(headers) }).head(endpoint);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/', {
+      expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}${endpoint}`, {
         method: 'HEAD',
         headers: new Headers(headers),
       });
 
-      new HttpClient('https://api.example.local/', { headers: headers }).head('/test/');
+      expect(firstResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect(await firstResponse.json()).toHaveProperty('status', 'OK');
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/', {
+      const secondResponse = await new HttpClient(baseUrl, { headers: headers }).head(endpoint);
+
+      expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}${endpoint}`, {
         method: 'HEAD',
         headers: new Headers(headers),
       });
 
-      new HttpClient().withHeader('Accept-Encoding', 'gzip, deflate, br').head('https://api.example.local/test/');
+      expect(secondResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect(await secondResponse.json()).toHaveProperty('status', 'OK');
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/', {
+      const thirdResponse = await new HttpClient()
+        .withHeader('Accept-Encoding', 'gzip, deflate, br')
+        .head(`${baseUrl}${endpoint}`);
+
+      expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}${endpoint}`, {
         method: 'HEAD',
         headers: new Headers(headers),
       });
+
+      expect(thirdResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect(await thirdResponse.json()).toHaveProperty('status', 'OK');
     });
 
-    it('Should be able to send a request with multiple headers', () => {
-      const headers = { 'Accept-Encoding': 'gzip, deflate, br', connection: 'keep-alive' };
+    it('Should be able to send a request with multiple headers', async () => {
+      const url = 'https://api.example.local/validate/headers';
+      const headers = { 'Accept-Encoding': 'gzip, deflate, br', 'Content-Type': 'application/json' };
 
-      new HttpClient().withHeaders(headers).head('https://api.example.local/test/');
+      const firstResponse = await new HttpClient().withHeaders(headers).head(url);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/', {
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
         method: 'HEAD',
         headers: new Headers(headers),
       });
 
-      new HttpClient().withHeaders(new Headers(headers)).head('https://api.example.local/test/');
+      expect(firstResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect(await firstResponse.json()).toHaveProperty('status', 'OK');
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/', {
+      const secondResponse = await new HttpClient().withHeaders(new Headers(headers)).head(url);
+
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
         method: 'HEAD',
         headers: new Headers(headers),
       });
+
+      expect(secondResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect(await secondResponse.json()).toHaveProperty('status', 'OK');
     });
 
-    it('Should be able to send a request with updated headers', () => {
+    it('Should be able to send a request with updated headers', async () => {
+      const url = 'https://api.example.local/validate/headers';
       const defaultHeaders = { 'Accept-Encoding': 'gzip, deflate', 'Content-Type': 'application/html' };
       const updatedHeaders = { 'Accept-Encoding': 'gzip, deflate, br', 'Content-Type': 'application/json' };
 
-      new HttpClient('https://api.example.local/')
-        .withHeaders(defaultHeaders)
-        .replaceHeaders(updatedHeaders)
-        .head('/test/');
+      const firstResponse = await new HttpClient().withHeaders(defaultHeaders).replaceHeaders(updatedHeaders).head(url);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/', {
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
         method: 'HEAD',
         headers: new Headers(updatedHeaders),
       });
 
-      new HttpClient('https://api.example.local/')
+      expect(firstResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect(await firstResponse.json()).toHaveProperty('status', 'OK');
+
+      const secondResponse = await new HttpClient(url)
         .withHeaders(defaultHeaders)
         .replaceHeaders(new Headers(updatedHeaders))
-        .head('/test/');
+        .head(url);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/', {
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
         method: 'HEAD',
         headers: new Headers(updatedHeaders),
       });
+
+      expect(secondResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect(await secondResponse.json()).toHaveProperty('status', 'OK');
     });
 
-    it('Should be able to send a request with an updated header', () => {
-      new HttpClient('https://api.example.local/')
+    it('Should be able to send a request with an updated header', async () => {
+      const url = 'https://api.example.local/validate/headers/content-type';
+
+      const response = await new HttpClient()
         .withHeaders({ 'Content-Type': 'application/html' })
         .replaceHeader('Content-Type', 'application/json')
-        .head('/test/');
+        .head(url);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/', {
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
         method: 'HEAD',
         headers: new Headers({
           'Content-Type': 'application/json',
         }),
       });
+
+      expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect(await response.json()).toHaveProperty('status', 'OK');
     });
 
     it('Should be able to send a request that accepts JSON', async () => {
-      const response = await new HttpClient().acceptJson().get('https://api.example.local/users');
+      const url = 'https://api.example.local/users';
+      const response = await new HttpClient().acceptJson().get(url);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/users/', {
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
         method: 'GET',
         headers: new Headers({ Accept: 'application/json' }),
       });
 
       expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
       expect(response.headers.get('Content-Type')).toStrictEqual('application/json');
-      expect(await response.json()).toStrictEqual([{ first_name: 'Luis', last_name: 'Aveiro' }]);
+      expect((await response.json()).length).toEqual(1);
     });
   });
 
   describe('Test requests with options', () => {
-    it('Should be able to send a request with options', () => {
+    it('Should be able to send a request with options', async () => {
+      const url = 'https://api.example.local/validate/options';
       const options = { mode: 'same-origin', keepalive: true };
 
-      new HttpClient('https://api.example.local/').withOptions(options).head('/test/');
+      const response = await new HttpClient().withOptions(options).head(url);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/', { method: 'HEAD', ...options });
+      expect(fetchSpy).toHaveBeenCalledWith(url, { method: 'HEAD', ...options });
+
+      expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect(await response.json()).toStrictEqual({ status: 'OK' });
     });
 
-    it('Should be able to send a request with an option', () => {
-      new HttpClient('https://api.example.local/').withOption('mode', 'same-origin').head('/test/');
+    it('Should be able to send a request with an option', async () => {
+      const url = 'https://api.example.local/validate/mode';
+      const response = await new HttpClient().withOption('mode', 'same-origin').head(url);
 
-      expect(fetchSpy).toHaveBeenCalledWith('https://api.example.local/test/', { method: 'HEAD', mode: 'same-origin' });
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
+        method: 'HEAD',
+        mode: 'same-origin',
+      });
+
+      expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
+      expect(await response.json()).toStrictEqual({ status: 'OK' });
     });
   });
 
   describe('Test request retries', () => {
     it('Send a request with retry', async () => {
-      await new HttpClient().retry(2, 1).get('https://api.example.local/unavailable/');
+      await new HttpClient().retry(2, 1).get('https://api.example.local/unavailable');
 
       expect(fetchSpy).toHaveBeenCalledTimes(3);
     });
@@ -349,7 +477,7 @@ describe('HTTP Client', () => {
         .retry(1, 1, (response) => {
           return response !== undefined && response.status !== HttpStatusCodes.HTTP_NOT_FOUND;
         })
-        .get('https://api.example.local/unavailable/');
+        .get('https://api.example.local/unavailable');
 
       expect(fetchSpy).toHaveBeenCalledTimes(2);
     });
@@ -369,51 +497,97 @@ describe('HTTP Client', () => {
           return true;
         })
         .acceptJson()
-        .get('https://api.example.local/users/1/');
+        .get('https://api.example.local/users/1');
 
       expect(spy).toHaveBeenCalledTimes(2);
     });
   });
 
   describe('Test Exceptions', () => {
-    it('Catch a request with invalid URL encoded data', () => {
-      const httpClient = new HttpClient().asUrlEncoded().post('https://api.example.local/test/', 'Example text');
+    it('Catch a request with invalid URL encoded data', async () => {
+      const response = new HttpClient()
+        .asUrlEncoded()
+        .post('https://api.example.local/notifications/text-message', 'Example text');
 
-      expect(httpClient).rejects.toThrowError('Cannot parse a string as URLSearchParams.');
+      await expect(response).rejects.toThrowError('Cannot parse a string as URLSearchParams.');
     });
 
-    it('Catch a request with invalid Multipart Form-data', () => {
-      const httpClient = new HttpClient().asForm().post('https://api.example.local/test/', 'Example text');
+    it('Catch a request with invalid Multipart Form-data', async () => {
+      const response = new HttpClient()
+        .asForm()
+        .post('https://api.example.local/notifications/text-message', 'Example text');
 
-      expect(httpClient).rejects.toThrowError('Cannot parse a string as FormData.');
+      await expect(response).rejects.toThrowError('Cannot parse a string as FormData.');
     });
 
     it('Catch a request with invalid header format', () => {
-      expect(() => new HttpClient().withOption('headers', 'invalid header')).toThrowError();
+      expect(() =>
+        new HttpClient('https://api.example.local/notifications/text-message').withOption('headers', 'invalid header'),
+      ).toThrowError();
     });
   });
 
   describe('Test mocked responses', () => {
     it('Mocked response is returned after faking', async () => {
-      const user = { first_name: 'Luis', last_name: 'Aveiro' };
+      const url = 'https://api.example.local/users';
+      const user = generateRandomUser();
+      const userId = generateRandomNumber(1, 100);
 
-      const mockedResponseBody = [{ id: generateRandomNumber(1, 100) }];
+      const mockedResponseBody = [{ id: userId }];
 
       const mockedResponse = new Response(JSON.stringify(mockedResponseBody), {
         status: HttpStatusCodes.HTTP_CREATED,
         headers: new Headers({ 'Content-Type': 'application/json' }),
       });
 
-      const response = await new HttpClient()
-        .fake({ 'users/*': mockedResponse })
+      const firstResponse = await new HttpClient()
+        .fake({ users: mockedResponse.clone() })
         .asJson()
         .acceptJson()
-        .post('https://api.example.local/users/', user);
+        .post(url, user);
 
-      expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_CREATED);
-      expect(response.headers.has('Content-Type')).toBeTruthy();
-      expect(response.headers.get('Content-Type')).toEqual('application/json');
-      expect(await response.json()).toStrictEqual(mockedResponseBody);
+      expect(firstResponse.status).toStrictEqual(HttpStatusCodes.HTTP_CREATED);
+      expect(firstResponse.headers.has('Content-Type')).toBeTruthy();
+      expect(firstResponse.headers.get('Content-Type')).toEqual('application/json');
+      expect(await firstResponse.json()).toStrictEqual(mockedResponseBody);
+
+      const secondResponse = await new HttpClient()
+        .fake({ 'users*': mockedResponse.clone() })
+        .asJson()
+        .acceptJson()
+        .post(url, user);
+
+      expect(secondResponse.status).toStrictEqual(HttpStatusCodes.HTTP_CREATED);
+      expect(secondResponse.headers.has('Content-Type')).toBeTruthy();
+      expect(secondResponse.headers.get('Content-Type')).toEqual('application/json');
+      expect(await secondResponse.json()).toStrictEqual(mockedResponseBody);
+
+      const thirdResponse = await new HttpClient()
+        .fake({ 'users/*': mockedResponse.clone() })
+        .asJson()
+        .acceptJson()
+        .post(url, user);
+
+      expect(thirdResponse.status).toStrictEqual(HttpStatusCodes.HTTP_CREATED);
+      expect(thirdResponse.headers.has('Content-Type')).toBeTruthy();
+      expect(thirdResponse.headers.get('Content-Type')).toEqual('application/json');
+      expect(await thirdResponse.json()).toStrictEqual(mockedResponseBody);
+
+      const fourthResponse = await new HttpClient()
+        .fake({
+          'users/*': new Response(JSON.stringify({ id: userId, ...user }), {
+            status: HttpStatusCodes.HTTP_CREATED,
+            headers: new Headers({ 'Content-Type': 'application/json' }),
+          }),
+        })
+        .asJson()
+        .acceptJson()
+        .get(`${url}/${userId}/profile`);
+
+      expect(fourthResponse.status).toStrictEqual(HttpStatusCodes.HTTP_CREATED);
+      expect(fourthResponse.headers.has('Content-Type')).toBeTruthy();
+      expect(fourthResponse.headers.get('Content-Type')).toEqual('application/json');
+      expect(await fourthResponse.json()).toStrictEqual({ id: userId, ...user });
     });
 
     it('Mocked responses is returned after faking', async () => {
@@ -429,10 +603,10 @@ describe('HTTP Client', () => {
         .asJson()
         .acceptJson();
 
-      const firstResponse = await client.delete('https://api.example.local/users/1/');
+      const firstResponse = await client.delete('https://api.example.local/users/1');
       expect(firstResponse.status).toStrictEqual(HttpStatusCodes.HTTP_ACCEPTED);
 
-      const secondResponse = await client.get('https://test.local/users/');
+      const secondResponse = await client.get('https://test.local/users');
       expect(secondResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
     });
 
@@ -442,21 +616,21 @@ describe('HTTP Client', () => {
         .asJson()
         .acceptJson();
 
-      const firstResponse = await client.delete('https://api.example.local/users/1/');
+      const firstResponse = await client.delete('https://api.example.local/users/1');
       expect(firstResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
 
-      const secondResponse = await client.get('https://test.local/users/');
+      const secondResponse = await client.get('https://test.local/users');
       expect(secondResponse.status).toStrictEqual(HttpStatusCodes.HTTP_OK);
     });
 
-    it('Catch a request with missing mocked response', () => {
-      const httpClient = new HttpClient()
+    it('Catch a request with missing mocked response', async () => {
+      const response = new HttpClient()
         .fake({ 'users/1/posts': new Response(JSON.stringify({}), { status: HttpStatusCodes.HTTP_OK }) })
         .acceptJson()
-        .get('https://api.example.local/users/1/');
+        .get('https://api.example.local/users/1');
 
-      expect(httpClient).rejects.toThrowError('Failed to fetch mocked response');
-      expect(httpClient).rejects.toThrowError(TypeError);
+      await expect(response).rejects.toThrowError('Failed to fetch mocked response');
+      await expect(response).rejects.toThrowError(TypeError);
     });
 
     it('Mocked failed response is returned after faking', async () => {
@@ -468,7 +642,7 @@ describe('HTTP Client', () => {
       const response = await new HttpClient()
         .fake({ '*': mockedResponse })
         .acceptJson()
-        .get('https://api.example.local/users/');
+        .get('https://api.example.local/users');
 
       expect(response.status).toStrictEqual(HttpStatusCodes.HTTP_SERVICE_UNAVAILABLE);
     });
