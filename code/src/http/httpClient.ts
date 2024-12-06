@@ -1,4 +1,4 @@
-import MockedResponses from './responses/mockedResponses';
+import { MockedResponseBuilder } from './builders';
 import type {
   AllowedTypes,
   FetchOptions,
@@ -42,7 +42,7 @@ export default class HttpClient {
    *
    * @var {MockedResponse}
    */
-  private readonly mockedResponses: MockedResponses;
+  private readonly mockedResponses: MockedResponseBuilder;
 
   /**
    * The Multipart Data Serializer instance.
@@ -107,7 +107,7 @@ export default class HttpClient {
    * @param {object | undefined} options
    */
   constructor(baseUrl?: string, options?: object) {
-    this.mockedResponses = new MockedResponses();
+    this.mockedResponses = new MockedResponseBuilder();
     this.multipartDataSerializer = new MultipartDataSerializer();
 
     this.setBaseUrl(baseUrl);
