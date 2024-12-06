@@ -1,7 +1,7 @@
 import Str from '@/utils/str';
 import { MissingMockedResponseException } from '../exceptions';
 
-export default class MockedResponses {
+export default class MockedResponseBuilder {
   /**
    * The mocked responses object.
    *
