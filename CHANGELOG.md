@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.9.1] - 2024-12-07
+### Fixed
+- The URL structure would include an unnecessary trailing slash.
+- The `buildUrl()` logic to prevent duplicate slashes in the URL structure.
+- The detecting Mocked Response URL logic to support the new URL structure.
+- Requests that contain form data not sending the data.
+
 ## [v0.9.0] - 2024-11-20
 ### Changed
 - Upgrade dev dependencies.
