@@ -64,7 +64,7 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.2.1",
     "msw": "^2.6.8",
-    "prettier": "^3.3.3",
+    "prettier": "^3.4.2",
     "typescript": "^5.7.2",
     "vite": "^6.0.3",
     "vite-plugin-dts": "^4.3.0",
