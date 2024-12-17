@@ -1,4 +1,4 @@
-import { http, HttpHandler } from 'msw';
+import { HttpHandler, http } from 'msw';
 import { mockedResponseStatusBadRequest, mockedResponseStatusOk } from 'tests/support/mocks/responses/mockedResponses';
 
 export const headMethodRoutes: HttpHandler[] = [

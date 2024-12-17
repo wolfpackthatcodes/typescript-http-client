@@ -1,4 +1,10 @@
 import { MockedResponseBuilder } from './builders';
+import {
+  EmptyRequestBodyException,
+  InvalidHeaderFormatException,
+  InvalidRequestBodyFormatException,
+} from './exceptions';
+import { MultipartDataSerializer } from './serializers';
 import type {
   AllowedTypes,
   FetchOptions,
@@ -8,12 +14,6 @@ import type {
   RequestBodyFormat,
   RequestOptions,
 } from './types';
-import {
-  EmptyRequestBodyException,
-  InvalidHeaderFormatException,
-  InvalidRequestBodyFormatException,
-} from './exceptions';
-import { MultipartDataSerializer } from './serializers';
 
 export default class HttpClient {
   /**

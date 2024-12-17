@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
 import Str from '@/utils/str';
+import { describe, expect, it } from 'vitest';
 
 describe('Support Str', () => {
   it.each([

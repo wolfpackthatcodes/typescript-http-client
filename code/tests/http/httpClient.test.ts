@@ -1,9 +1,9 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, MockInstance, vi } from 'vitest';
-import HttpClient from '@/http/httpClient';
 import { MissingMockedResponseException } from '@/http/exceptions';
+import HttpClient from '@/http/httpClient';
 import { HttpStatusCodes } from 'tests/support/enums/httpStatusCodes';
 import { generateRandomNumber, generateRandomUser, generateSecurePassword } from 'tests/support/helpers/generators';
 import { server } from 'tests/support/mocks/mockServer';
+import { MockInstance, afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('HTTP Client', () => {
   let fetchSpy: MockInstance;

@@ -1,5 +1,5 @@
-import Str from '@/utils/str';
 import { MissingMockedResponseException } from '../exceptions';
+import Str from '@/utils/str';
 
 export default class MockedResponseBuilder {
   /**

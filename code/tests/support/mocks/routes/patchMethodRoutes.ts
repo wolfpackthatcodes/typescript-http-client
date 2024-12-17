@@ -1,5 +1,5 @@
-import { http, HttpHandler } from 'msw';
 import { mockedResponseStatusAccepted } from '../responses/mockedResponses';
+import { HttpHandler, http } from 'msw';
 
 export const patchMethodRoutes: HttpHandler[] = [
   http.patch('https://api.example.local/users/:id', async ({ request, params }) => {

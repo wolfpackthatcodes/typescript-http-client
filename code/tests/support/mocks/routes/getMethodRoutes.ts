@@ -1,11 +1,11 @@
-import { delay, http, HttpHandler } from 'msw';
-import { generateRandomBooks, generateRandomUser } from 'tests/support/helpers/generators';
 import {
   mockedResponseStatusBadRequest,
   mockedResponseStatusOk,
   mockedResponseStatusUnauthorized,
   mockedResponseStatusUnavailable,
 } from '../responses/mockedResponses';
+import { HttpHandler, delay, http } from 'msw';
+import { generateRandomBooks, generateRandomUser } from 'tests/support/helpers/generators';
 
 export const getMethodRoutes: HttpHandler[] = [
   http.get('https://api.example.local/auth/protected-resource', ({ request }) => {
