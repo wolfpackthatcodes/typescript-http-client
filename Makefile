@@ -30,4 +30,4 @@ local-setup:
 	exec docker run -it --rm --name http-client \
 		-v $(PWD)${CODE_DIR}:/app \
 		-w="/app" \
-		node:alpine /bin/sh -c "yarn install"
+		node:alpine /bin/sh -c "yarn install --immutable"
