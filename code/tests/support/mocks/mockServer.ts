@@ -1,5 +1,3 @@
-import { setupServer, SetupServer } from 'msw/node';
-import { HttpHandler } from 'msw';
 import {
   deleteMethodRoutes,
   getMethodRoutes,
@@ -9,6 +7,8 @@ import {
   postMethodRoutes,
   putMethodRoutes,
 } from './routes';
+import { HttpHandler } from 'msw';
+import { SetupServer, setupServer } from 'msw/node';
 
 const restHandlers: HttpHandler[] = [
   ...deleteMethodRoutes,

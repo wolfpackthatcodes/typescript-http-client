@@ -1,5 +1,5 @@
-import { http, HttpHandler } from 'msw';
 import { mockedResponseStatusCreated, mockedResponseStatusOk } from '../responses/mockedResponses';
+import { HttpHandler, http } from 'msw';
 
 export const postMethodRoutes: HttpHandler[] = [
   http.post('https://api.example.local/notifications/text-message', () => {

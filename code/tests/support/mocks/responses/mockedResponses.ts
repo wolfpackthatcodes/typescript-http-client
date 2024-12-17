@@ -1,5 +1,5 @@
-import { HttpStatusCodes } from 'tests/support/enums/httpStatusCodes';
 import { HttpResponse } from 'msw';
+import { HttpStatusCodes } from 'tests/support/enums/httpStatusCodes';
 
 export const mockedResponseStatusAccepted = (body: string | null = null) => {
   return new HttpResponse(body, {
