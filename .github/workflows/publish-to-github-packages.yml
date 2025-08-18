@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout the Git repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Use Node.js ${{ env.node-version }}
         uses: ./.github/actions/setup-node
@@ -48,7 +48,7 @@ jobs:
 
     steps:
       - name: Checkout the Git repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Use Node.js ${{ env.node-version }}
         uses: ./.github/actions/setup-node
